@@ -30,8 +30,8 @@ export const SPECIES = [
     name: { zh: '狗', en: 'Dog' }, latin: 'Canis familiaris',
     mode: 1, acuity: 3.75, sat: 0.95, gain: 3.5, scotopic: 1, fov: 250, binoc: 60, eye: 0.5,
     info: {
-      zh: { colour: '二色视觉：约 429 / 555 nm 两种视锥，红绿合一，蓝黄分明', acuity: '约 20/75，细节约为人的 1/4', fov: '约 240–250°，双眼重叠约 60°', night: '视网膜后有反光层，弱光下明显好于人', height: '中型犬约 0.5 m', look: '绿地毯上的红球还显眼吗？红色和绿色的积木还分得开吗？' },
-      en: { colour: 'Dichromat: cones near 429 / 555 nm; red and green merge, blue and yellow stay', acuity: 'About 20/75, a quarter of our detail', fov: 'About 240–250°, ~60° binocular', night: 'Reflective tapetum: clearly better than us in dim light', height: 'Medium dog ≈ 0.5 m', look: 'Is the red ball still loud on the green rug? Can you tell the red block from the green one?' },
+      zh: { colour: '二色视觉：约 429 / 555 nm 两种视锥，红绿合一，蓝黄分明', acuity: '约 20/75，细节约为人的 1/4', fov: '约 240–250°，双眼重叠约 60°', night: '视网膜后有反光层，弱光下明显好于人', height: '中型犬约 0.5 m', look: '绿毯上的红皮球还显眼吗？红封面的书和绿玻璃瓶还分得开吗？' },
+      en: { colour: 'Dichromat: cones near 429 / 555 nm; red and green merge, blue and yellow stay', acuity: 'About 20/75, a quarter of our detail', fov: 'About 240–250°, ~60° binocular', night: 'Reflective tapetum: clearly better than us in dim light', height: 'Medium dog ≈ 0.5 m', look: 'Is the red ball still loud on the green rug? Can you tell the red book from the green bottle?' },
     },
   },
   {
@@ -66,8 +66,8 @@ export const SPECIES = [
     name: { zh: '蝮蛇', en: 'Pit viper' }, latin: 'Crotalinae',
     mode: 4, acuity: 6, sat: 0.35, gain: 2, scotopic: 1, fov: 170, binoc: 45, eye: 0.03, thermalBlur: 2.2,
     info: {
-      zh: { colour: '眼睛是二色视觉；眼睛和鼻孔之间的"颊窝"能感受热（红外）', acuity: '眼睛一般；颊窝的热像更模糊，像隔着毛玻璃', fov: '约 170°（示意，因种而异）', night: '热像不需要光：关灯也照样"看见"温度', height: '贴着地面约 3 cm', look: '找找仓鼠，再看看那杯热可可和暖气片。窗玻璃对它来说是一堵冷墙。' },
-      en: { colour: 'Eyes are dichromatic; the "pit" between eye and nostril senses heat (infrared)', acuity: 'Modest eyes; the pit image is blurrier still, like frosted glass', fov: 'About 170° (illustrative; varies by species)', night: 'Heat needs no light: lights off changes nothing', height: 'Flat on the floor ≈ 3 cm', look: 'Find the hamster, then the hot cocoa and the radiator. Window glass is a cold wall to it.' },
+      zh: { colour: '眼睛是二色视觉；眼睛和鼻孔之间的"颊窝"能感受热（红外）', acuity: '眼睛一般；颊窝的热像更模糊，像隔着毛玻璃', fov: '约 170°（示意，因种而异）', night: '热像不需要光：关灯也照样"看见"温度', height: '贴着地面约 3 cm', look: '找那杯刚泡的热茶，再对比茶几上凉掉的那杯和暖气片。窗玻璃对它来说是一堵冷墙。' },
+      en: { colour: 'Eyes are dichromatic; the "pit" between eye and nostril senses heat (infrared)', acuity: 'Modest eyes; the pit image is blurrier still, like frosted glass', fov: 'About 170° (illustrative; varies by species)', night: 'Heat needs no light: lights off changes nothing', height: 'Flat on the floor ≈ 3 cm', look: 'Find the freshly made tea, then compare the cold cup on the coffee table and the radiator. Window glass is a cold wall to it.' },
     },
   },
 ];
@@ -135,8 +135,18 @@ vec3 sampleBlur(samplerCube t, vec3 d, float rad, float res) {
 
 float lum(vec3 c) { return dot(c, vec3(0.2126, 0.7152, 0.0722)); }
 
+// ACES Filmic, exactly as three.js's ACESFilmicToneMapping (exposure is applied before, via uExposure)
+vec3 avRRTFit(vec3 v) {
+  vec3 a = v * (v + 0.0245786) - 0.000090537;
+  vec3 b = v * (0.983729 * v + 0.4329510) + 0.238081;
+  return a / b;
+}
 vec3 aces(vec3 x) {
-  return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0);
+  const mat3 ACESInputMat = mat3(vec3(0.59719, 0.07600, 0.02840), vec3(0.35458, 0.90834, 0.13383), vec3(0.04823, 0.01566, 0.83777));
+  const mat3 ACESOutputMat = mat3(vec3(1.60475, -0.10208, -0.00327), vec3(-0.53108, 1.10813, -0.07276), vec3(-0.07367, -0.00605, 1.07602));
+  x = ACESInputMat * (x / 0.6);
+  x = avRRTFit(x);
+  return clamp(ACESOutputMat * x, 0.0, 1.0);
 }
 vec3 toSRGB(vec3 c) {
   return mix(c * 12.92, 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055, step(0.0031308, c));

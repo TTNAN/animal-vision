@@ -35,9 +35,9 @@ const DEFAULT = [
   ['lang=zh&cube=1024&mode=split&sp=dog&view=rug&info=0', 'assets/shots/dog.jpg'],
   ['lang=zh&cube=1024&mode=split&sp=cat&view=door&night=1&info=0', 'assets/shots/cat-night.jpg'],
   ['lang=zh&cube=1024&mode=split&sp=bee&view=flower&info=0', 'assets/shots/bee.jpg'],
-  ['lang=zh&cube=1024&mode=split&sp=eagle&view=chest&info=0', 'assets/shots/eagle.jpg'],
-  ['lang=zh&cube=1024&mode=split&sp=snake&view=hamster&night=1&info=0', 'assets/shots/snake.jpg'],
-  ['lang=zh&cube=1024&mode=single&sp=human&view=bed&info=0', 'assets/shots/under-bed.jpg'],
+  ['lang=zh&cube=1024&mode=split&sp=eagle&view=shelf&info=0', 'assets/shots/eagle.jpg'],
+  ['lang=zh&cube=1024&mode=split&sp=snake&view=radiator&night=1&info=0', 'assets/shots/snake.jpg'],
+  ['lang=zh&cube=1024&mode=single&sp=cat&h=own&view=sofa&info=0', 'assets/shots/under-sofa.jpg'],
 ];
 
 let [w, h, ...jobs] = process.argv.slice(2);

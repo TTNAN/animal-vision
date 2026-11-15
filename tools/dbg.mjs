@@ -1,0 +1,17 @@
+import { chromium } from 'playwright-core';
+import fs from 'fs'; import path from 'path'; import http from 'http';
+const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.glb': 'model/gltf-binary', '.webp': 'image/webp', '.css':'text/css' };
+const root='/workspace/work/av2';
+const server = http.createServer((req, res) => { const f = path.join(root, decodeURIComponent(req.url.split('?')[0])); fs.readFile(f, (e, d) => { if (e) { res.writeHead(404); res.end(); return; } res.writeHead(200, { 'Content-Type': TYPES[path.extname(f)] || 'application/octet-stream' }); res.end(d); }); }).listen(0);
+const exe = process.env.HOME+'/.cache/ms-playwright/chromium_headless_shell-1255/chrome-headless-shell-linux-arm64/chrome-headless-shell';
+const b = await chromium.launch({ logger: { isEnabled: () => true, log: (n,s,m) => { if (/err|crash|signal/i.test(m)) console.log('LOG', m.slice(0,300)); } }, executablePath: exe, args: ['--use-angle=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist'] });
+const p = await b.newPage({ viewport: { width: 640, height: 400 } });
+p.setDefaultTimeout(600000);
+p.on('console', m => console.log('console', m.type(), m.text().slice(0,300)));
+p.on('crash', () => console.log('PAGE CRASH')); b.on('disconnected', () => console.log('BROWSER DISCONNECTED')); p.on('pageerror', e => console.log('pageerror', e.message));
+await p.goto(`http://localhost:${server.address().port}/index.html?` + (process.argv[2]||'cube=256&info=0&view=rug'));
+await p.waitForFunction(() => (window.__frames || 0) > 2);
+const js = process.argv[3];
+if (js) console.log(await p.evaluate(js));
+if (process.argv[4]) await p.screenshot({ path: process.argv[4] });
+await b.close(); server.close();

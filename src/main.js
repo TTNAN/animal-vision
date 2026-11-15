@@ -5,9 +5,15 @@ import { I18N, QUESTS } from './i18n.js';
 
 // ------------------------------------------------------------------ setup
 const canvas = document.getElementById('stage');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance', preserveDrawingBuffer: true });
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: new URLSearchParams(location.search).get('aa') !== '0', powerPreference: 'high-performance', preserveDrawingBuffer: true });
 const DPR = Math.min(window.devicePixelRatio || 1, 2);
 renderer.setPixelRatio(DPR);
+// Colour pipeline. The room is rendered linear (HDR, half-float) into cube maps; the vision shader
+// samples those and finishes the image itself, so it reads these two settings and applies
+// ACES Filmic (three.js's own curve) and the sRGB encode at the very end, after the animal's eye.
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+if (new URLSearchParams(location.search).get('tm') !== '0') renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = Number(new URLSearchParams(location.search).get('exposure')) || 1.08;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.shadowMap.autoUpdate = false;
@@ -33,6 +39,23 @@ const near = 0.015, far = 30;
 const camN = new THREE.CubeCamera(near, far, rtN);
 const camU = new THREE.CubeCamera(near, far, rtU);
 const camT = new THREE.CubeCamera(near, far, rtT);
+// Anti-aliasing for the colour pass only: the face target below is 4× multisampled. The UV and heat passes are blurred anyway and skip it. ?msaa=0 turns it off.
+const MSAA = params.get('msaa') !== '0' && !isSmall && renderer.capabilities.maxSamples >= 4;
+// The colour pass always draws each face into this 2D target first, then copies it into the cube:
+// three.js's transmission pass (window and bottle glass) restores the render target without its
+// cube face, which would wipe face 0 and leave the others empty.
+const msaaRT = new THREE.WebGLRenderTarget(CUBE, CUBE, { type: floatOK ? THREE.HalfFloatType : THREE.UnsignedByteType, samples: MSAA ? 4 : 0, depthBuffer: true });
+// One camera object renders all six faces: the glass's transmission buffer is cached per camera,
+// so this keeps it to one buffer instead of six.
+const faceCam = new THREE.PerspectiveCamera(90, 1, near, far);
+const copyMat = new THREE.ShaderMaterial({
+  glslVersion: THREE.GLSL3, depthTest: false, depthWrite: false, uniforms: { t: { value: null } },
+  vertexShader: 'out vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+  fragmentShader: 'uniform sampler2D t; in vec2 vUv; out vec4 o; void main() { o = texture(t, vUv); }',
+});
+const copyQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), copyMat); copyQuad.frustumCulled = false;
+const copyScene = new THREE.Scene(); copyScene.add(copyQuad);
+const copyCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000000);
@@ -87,16 +110,30 @@ function setPass(pass) {
 
 // Render the six faces ourselves, clearing each one (CubeCamera.update skipped
 // the clear with autoClear off and left a face black on some drivers).
-function cubeUpdate(cam) {
+function cubeUpdate(cam, aa = false) {
   if (cam.coordinateSystem !== renderer.coordinateSystem) { cam.coordinateSystem = renderer.coordinateSystem; cam.updateCoordinateSystem(); }
   cam.updateMatrixWorld();
   const rt = cam.renderTarget, mips = rt.texture.generateMipmaps;
+  const ms = aa && msaaRT && msaaRT.width === rt.width;
   for (let f = 0; f < 6; f++) {
+    const c = cam.children[f];
+    c.matrixWorld.decompose(faceCam.position, faceCam.quaternion, faceCam.scale);
+    faceCam.projectionMatrix.copy(c.projectionMatrix); faceCam.projectionMatrixInverse.copy(c.projectionMatrixInverse);
+    faceCam.updateMatrixWorld(true);
     // first frame: build the mip chain after every face, which some drivers need before a face can be drawn into
     rt.texture.generateMipmaps = (f === 5 || !rt.warm) ? mips : false;
-    renderer.setRenderTarget(rt, f);
-    renderer.clear();
-    renderer.render(scene, cam.children[f]);
+    if (ms) {
+      renderer.setRenderTarget(msaaRT);
+      renderer.clear();
+      renderer.render(scene, faceCam);
+      copyMat.uniforms.t.value = msaaRT.texture;
+      renderer.setRenderTarget(rt, f);
+      renderer.render(copyScene, copyCam);
+    } else {
+      renderer.setRenderTarget(rt, f);
+      renderer.clear();
+      renderer.render(scene, faceCam);
+    }
   }
   renderer.setRenderTarget(null);
   rt.warm = true;
@@ -248,23 +285,25 @@ function updateMove(dt) {
 }
 
 // ------------------------------------------------------------------ night
+const DAY = {
+  sun: room.lights.sun.intensity, sky: room.lights.skyPanel.intensity, hemi: room.lights.hemi.intensity,
+  lamp: room.lights.lamp.intensity, pendant: room.lights.pendant.intensity, env: scene.environmentIntensity,
+  skyMat: room.lights.skyMat.color.r, bulb: room.lights.lampBulb.material.emissiveIntensity,
+};
 function applyLighting() {
   const L = room.lights, n = state.night;
-  // lights off at dusk: the sun is gone, a little blue moonlight comes through the window
-  L.sun.intensity = n ? 0.25 : 7.0;
-  L.sun.color.set(n ? 0x8fa8ff : 0xffe7c4);
-  L.skyPanel.intensity = n ? 0.12 : 9.0;
-  L.skyPanel.color.set(n ? 0x5a78c8 : 0xcfe2ff);
-  L.hemi.intensity = n ? 0.01 : 0.9;
-  L.bounce.intensity = n ? 0 : 1.6;
-  L.lamp.intensity = n ? 0 : 2.2;
-  L.lampBulb.material.emissiveIntensity = n ? 0 : 2;
+  // lights off: no sun, no lamps; only a little blue moonlight and city glow through the window
+  L.sun.intensity = n ? 0.22 : DAY.sun;
+  L.sun.color.set(n ? 0x8fa8ff : 0xffe0b8);
+  L.skyPanel.intensity = n ? 0.1 : DAY.sky;
+  L.skyPanel.color.set(n ? 0x5a78c8 : 0xc5d4e8);
+  L.hemi.intensity = n ? 0.004 : DAY.hemi;
+  L.lamp.intensity = n ? 0 : DAY.lamp;
+  L.pendant.intensity = n ? 0 : DAY.pendant;
+  L.lampBulb.material.emissiveIntensity = n ? 0 : DAY.bulb;
   L.lampBulb.userData.temp = n ? 24 : 75;
-  L.nightLight.intensity = n ? 0.35 : 0;
-  L.nightLightMesh.material.emissiveIntensity = n ? 2.2 : 0;
-  L.starMat.emissiveIntensity = n ? 1.2 : 0;
-  scene.environmentIntensity = n ? 0.025 : 1.5;
-  room.lights.skyMat.color.setScalar(n ? 0.035 : 2.2);
+  scene.environmentIntensity = n ? 0.02 : DAY.env;
+  L.skyMat.color.setScalar(n ? 0.03 : DAY.skyMat);
   renderer.shadowMap.needsUpdate = true;
 }
 
@@ -309,7 +348,7 @@ function frame(now) {
   const vps = viewports();
   const needUV = vps.some(v => v.sp.mode === 2);
   const needT = vps.some(v => v.sp.mode === 4);
-  setPass('normal'); cubeUpdate(camN);
+  setPass('normal'); cubeUpdate(camN, true);
   if (needUV) { setPass('uv'); cubeUpdate(camU); }
   if (needT) { setPass('thermal'); cubeUpdate(camT); }
   if (needUV || needT) setPass('normal');
@@ -327,6 +366,7 @@ function frame(now) {
   renderer.setScissorTest(true);
   for (const v of vps) {
     applySpecies(visionMat, v.sp, { realFov: state.realFov, baseFov: BASE_FOV, night: state.night });
+    visionMat.uniforms.uExposure.value = renderer.toneMappingExposure;
     visionMat.uniforms.uFlash.value = v.sp.id === state.species ? flash * 0.15 : 0;
     const [x, y0, w, h] = v.rect;
     visionMat.uniforms.uRect.value.set(x, y0, w, h);
@@ -517,4 +557,4 @@ document.body.classList.add('ready');
 requestAnimationFrame(frame);
 
 // expose a tiny API for the capture script
-window.AV = { room, THREE, cubeUpdate, renderer, rtN, rtT, camT, meshes, scene, camN, setSpecies, setCompare, setHeight, setToggle, goTo, state, SPECIES };
+window.AV = { room, THREE, applyLighting, DAY, cubeUpdate, renderer, rtN, rtT, camT, meshes, scene, camN, setSpecies, setCompare, setHeight, setToggle, goTo, state, SPECIES };
