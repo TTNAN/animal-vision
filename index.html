@@ -2,100 +2,120 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>animal-vision · 同一间房，不同的眼睛</title>
-<style>
-  :root { --ink:#1f1c19; --muted:#6b6560; --line:#e8e2db; --bg:#faf7f2; --card:#fff; }
-  * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); color:var(--ink);
-         font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",sans-serif; }
-  header { display:flex; justify-content:space-between; align-items:flex-start;
-           max-width:960px; margin:0 auto; padding:28px 20px 0; }
-  h1 { font-size:28px; margin:0 0 8px; }
-  .sub { color:var(--muted); font-size:15px; line-height:1.7; margin:0; max-width:640px; }
-  #langBtn { border:1px solid var(--line); background:#fff; border-radius:999px;
-            padding:8px 16px; font-size:14px; cursor:pointer; white-space:nowrap; }
-  main { max-width:960px; margin:0 auto; padding:20px; }
-  figure { margin:0; }
-  figure img { width:100%; display:block; border-radius:14px;
-               box-shadow:0 12px 32px rgba(60,45,30,.16); }
-  figcaption { color:var(--muted); font-size:13px; margin-top:10px; line-height:1.6; }
-  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
-          gap:12px; margin:22px 0; }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; }
-  .card h3 { margin:0 0 6px; font-size:16px; }
-  .card p { margin:0; color:var(--muted); font-size:13.5px; line-height:1.7; }
-  .note { background:#fff; border:1px solid var(--line); border-left:4px solid #b98a4a;
-          border-radius:10px; padding:16px 18px; font-size:14px; line-height:1.8; color:#4d463f; }
-  .note b { color:var(--ink); }
-  footer { max-width:960px; margin:0 auto; padding:0 20px 36px; color:var(--muted); font-size:13px; }
-  footer a { color:inherit; }
-  @media (max-width:600px){ h1{font-size:22px;} header{padding-top:20px;} }
-</style>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>animal-vision · 趴在地上，换一双眼睛</title>
+<meta name="description" content="一个可以爬来爬去的 3D 儿童房，从玩具的高度，用狗、猫、蜜蜂、鹰、蝮蛇的眼睛看同一个世界。">
+<meta property="og:title" content="animal-vision · 趴在地上，换一双眼睛">
+<meta property="og:description" content="Toy-height 3D room seen through dog, cat, bee, eagle and pit-viper eyes.">
+<meta property="og:image" content="assets/cover.jpg">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👁</text></svg>">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header>
-  <div>
-    <h1 data-i18n="title">同一间房，不同的眼睛</h1>
-    <p class="sub" data-i18n="sub">同一个家庭客厅，同一个固定视角——人、狗、猫、蜜蜂、鹰看到的，是五个世界。动图依次循环：人 → 狗 → 猫 → 蜜蜂 → 鹰。</p>
+<section class="hero">
+  <canvas id="stage" aria-label="3D room"></canvas>
+  <div id="labels"></div>
+  <div id="splitHandle" hidden><span>⟷</span></div>
+
+  <header class="top">
+    <div class="brand">
+      <div class="logo">animal<span>·</span>vision</div>
+      <div class="sub" data-i18n="brandSub"></div>
+    </div>
+    <nav class="views" aria-label="viewpoints">
+      <button data-preset="door" data-i18n="v_door"></button>
+      <button data-preset="rug" data-i18n="v_rug"></button>
+      <button data-preset="bed" data-i18n="v_bed"></button>
+      <button data-preset="chest" data-i18n="v_chest"></button>
+      <button data-preset="flower" data-i18n="v_flower"></button>
+      <button data-preset="hamster" data-i18n="v_hamster"></button>
+    </nav>
+    <div class="tools">
+      <button id="shotBtn" class="ghost" data-i18n="shot"></button>
+      <button id="infoToggle" class="ghost" data-i18n="infoBtn"></button>
+      <button id="langBtn" class="ghost">EN</button>
+      <a class="ghost gh" href="https://github.com/TTNAN/animal-vision" aria-label="GitHub"><svg viewBox="0 0 16 16" width="16" height="16"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.06-.49.06-.49.8.06 1.23.83 1.23.83.72 1.23 1.88.87 2.34.67.07-.52.28-.87.5-1.07-1.78-.2-3.65-.89-3.65-3.95 0-.87.31-1.59.83-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+    </div>
+  </header>
+
+  <div id="stageNote" hidden></div>
+  <div id="hint"><span class="mouse" data-i18n="hint"></span><span class="touchonly" data-i18n="hintTouch"></span></div>
+
+  <aside id="info">
+    <div class="card">
+      <h2 id="infoName"></h2>
+      <div class="fov"><div id="fovSvg"></div><p data-i18n="fovCaption"></p></div>
+      <div id="infoRows"></div>
+      <div class="look"><b data-i18n="lookFor"></b><p id="infoLook"></p></div>
+    </div>
+    <div class="card">
+      <h3 data-i18n="questsTitle"></h3>
+      <div id="quests"></div>
+    </div>
+  </aside>
+
+  <div class="dpad" aria-hidden="true">
+    <button data-dpad="w" class="up">▲</button>
+    <button data-dpad="arrowleft" class="lt">◀</button>
+    <button data-dpad="s" class="dn">▼</button>
+    <button data-dpad="arrowright" class="rt">▶</button>
   </div>
-  <button id="langBtn" type="button">EN</button>
-</header>
-<main>
-  <figure>
-    <img src="assets/demo.gif" alt="同一间客厅在人、狗、猫、蜜蜂、鹰五种眼睛里的样子">
-    <figcaption data-i18n="cap">红球、绿地毯、花瓶里的花、右边的书架——每件东西都是为了让某一种差别露出来。</figcaption>
-  </figure>
-  <div class="grid">
-    <div class="card"><h3 data-i18n="v1t">人 · Human</h3><p data-i18n="v1p">三色视觉，红绿分明，远近都清晰。</p></div>
-    <div class="card"><h3 data-i18n="v2t">狗 · Dog</h3><p data-i18n="v2p">二色视觉，红绿分不清了，红球只剩明暗差别。</p></div>
-    <div class="card"><h3 data-i18n="v3t">猫 · Cat</h3><p data-i18n="v3p">颜色变淡、画面变糊，弱光下反而看得更清。</p></div>
-    <div class="card"><h3 data-i18n="v4t">蜜蜂 · Bee</h3><p data-i18n="v4p">红色消失了，花心出现紫外线蜜导图案（近似示意）。</p></div>
-    <div class="card"><h3 data-i18n="v5t">鹰 · Eagle</h3><p data-i18n="v5p">远处书脊更清晰，细节一下子放大。</p></div>
-  </div>
-  <div class="note" data-i18n="note"><b>这是一个近似模拟，不是原样复刻。</b>颜色换算按各物种实测的视锥峰值做，亮度做了守恒处理；紫外线在普通屏幕上无法真实还原，蜜蜂那一帧花心的图案是示意。没有任何模拟能等同于另一种动物的主观感受。</div>
+
+  <footer class="dock">
+    <div id="chips" role="group" aria-label="species"></div>
+    <div class="controls">
+      <div class="seg" role="group">
+        <button data-compare="single" data-i18n="cmp_single"></button>
+        <button data-compare="split" data-i18n="cmp_split"></button>
+        <button data-compare="grid" data-i18n="cmp_grid"></button>
+      </div>
+      <div class="seg" role="group">
+        <button data-height="toy" data-i18n="h_toy"></button>
+        <button data-height="baby" data-i18n="h_baby"></button>
+        <button data-height="own" data-i18n="h_own"></button>
+      </div>
+      <button class="tg" data-toggle="night" aria-pressed="false">🌙 <span data-i18n="tg_night"></span></button>
+      <button class="tg" data-toggle="realFov" aria-pressed="false">↔️ <span data-i18n="tg_fov"></span></button>
+    </div>
+  </footer>
+  <noscript><p class="nojs">需要开启 JavaScript 和 WebGL 2。</p></noscript>
+</section>
+
+<main class="story">
+  <section>
+    <h2 data-i18n="s1Title"></h2>
+    <p data-i18n="s1Body"></p>
+  </section>
+  <section>
+    <h2 data-i18n="s2Title"></h2>
+    <div id="tests" class="tests"></div>
+  </section>
+  <section class="two">
+    <div>
+      <h2 data-i18n="s3Title"></h2>
+      <p data-i18n="s3Body"></p>
+    </div>
+    <div class="caveat">
+      <h2 data-i18n="s4Title"></h2>
+      <p data-i18n="s4Body"></p>
+    </div>
+  </section>
+  <section>
+    <h2 data-i18n="srcTitle"></h2>
+    <ol class="refs">
+      <li>Neitz J, Geist T, Jacobs GH (1989). Color vision in the dog. <i>Visual Neuroscience</i> 3: 119–125.</li>
+      <li>Miller PE, Murphy CJ (1995). Vision in dogs. <i>JAVMA</i> 207(12): 1623–1634.</li>
+      <li>Guenther E, Zrenner E (1993). The spectral sensitivity of dark- and light-adapted cat retinal ganglion cells. <i>J Neurosci</i> 13(4): 1543–1550.</li>
+      <li>Peitsch D et al. (1992). The spectral input systems of hymenopteran insects and their receptor-based colour vision. <i>J Comp Physiol A</i> 170: 23–40.</li>
+      <li>Reymond L (1985). Spatial visual acuity of the eagle <i>Aquila audax</i>. <i>Vision Research</i> 25(10): 1477–1491.</li>
+      <li>Snyder AW, Miller WH (1978). Telephoto lens system of falconiform eyes. <i>Nature</i> 275: 127–129.</li>
+      <li>Newman EA, Hartline PH (1982). The infrared "vision" of snakes. <i>Scientific American</i> 246(3): 116–127.</li>
+      <li>Machado GM, Oliveira MM, Fernandes LAF (2009). A physiologically-based model for simulation of color vision deficiency. <i>IEEE TVCG</i> 15(6): 1291–1298.</li>
+    </ol>
+  </section>
+  <footer class="foot"><span data-i18n="footer"></span> · <a href="https://github.com/TTNAN/animal-vision">GitHub</a></footer>
 </main>
-<footer>
-  <span data-i18n="foot">animal-vision · MIT License · 底图为同一间客厅生成一次，五种视角皆为该图的换算结果。</span>
-  <a href="https://github.com/TTNAN/animal-vision">GitHub: TTNAN/animal-vision</a>
-</footer>
-<script>
-const I18N = {
-  zh: { title:"同一间房，不同的眼睛",
-    sub:"同一个家庭客厅，同一个固定视角——人、狗、猫、蜜蜂、鹰看到的，是五个世界。动图依次循环：人 → 狗 → 猫 → 蜜蜂 → 鹰。",
-    cap:"红球、绿地毯、花瓶里的花、右边的书架——每件东西都是为了让某一种差别露出来。",
-    v1t:"人 · Human", v1p:"三色视觉，红绿分明，远近都清晰。",
-    v2t:"狗 · Dog", v2p:"二色视觉，红绿分不清了，红球只剩明暗差别。",
-    v3t:"猫 · Cat", v3p:"颜色变淡、画面变糊，弱光下反而看得更清。",
-    v4t:"蜜蜂 · Bee", v4p:"红色消失了，花心出现紫外线蜜导图案（近似示意）。",
-    v5t:"鹰 · Eagle", v5p:"远处书脊更清晰，细节一下子放大。",
-    note:"<b>这是一个近似模拟，不是原样复刻。</b>颜色换算按各物种实测的视锥峰值做，亮度做了守恒处理；紫外线在普通屏幕上无法真实还原，蜜蜂那一帧花心的图案是示意。没有任何模拟能等同于另一种动物的主观感受。",
-    foot:"animal-vision · MIT License · 底图为同一间客厅生成一次，五种视角皆为该图的换算结果。" },
-  en: { title:"One Room, Different Eyes",
-    sub:"One family living room, one fixed viewpoint — and five different worlds, through human, dog, cat, bee and eagle eyes. The animation loops: human → dog → cat → bee → eagle.",
-    cap:"The red ball, the green rug, the flowers, the bookshelf — every object is there to make one difference visible.",
-    v1t:"Human · 人", v1p:"Trichromatic vision: reds and greens apart, near and far in focus.",
-    v2t:"Dog · 狗", v2p:"Dichromatic vision: red and green merge; the ball survives only as brightness.",
-    v3t:"Cat · 猫", v3p:"Colours fade and soften, yet dim light becomes easier to see in.",
-    v4t:"Bee · 蜜蜂", v4p:"Red disappears; UV nectar guides appear on the flowers (illustrative approximation).",
-    v5t:"Eagle · 鹰", v5p:"Distant book spines sharpen; detail leaps out.",
-    note:"<b>This is an approximation, not a recording.</b> Colours are converted from each species' measured cone peaks, with brightness preserved; ultraviolet cannot be genuinely reproduced on an ordinary screen, so the pattern on the flowers in the bee frame is illustrative. No simulation equals another animal's subjective experience.",
-    foot:"animal-vision · MIT License · One base image of the room; all five views are transforms of it." }
-};
-let lang = "zh";
-const btn = document.getElementById("langBtn");
-btn.addEventListener("click", () => {
-  lang = lang === "zh" ? "en" : "zh";
-  document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
-  document.title = lang === "zh" ? "animal-vision · 同一间房，不同的眼睛" : "animal-vision · One Room, Different Eyes";
-  btn.textContent = lang === "zh" ? "EN" : "中文";
-  document.querySelectorAll("[data-i18n]").forEach(el => {
-    const k = el.getAttribute("data-i18n");
-    if (!I18N[lang][k]) return;
-    if (k === "note") el.innerHTML = I18N[lang][k];
-    else el.textContent = I18N[lang][k];
-  });
-});
-</script>
+
+<script type="module" src="dist/app.js"></script>
 </body>
 </html>

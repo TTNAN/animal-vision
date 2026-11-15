@@ -1,0 +1,14 @@
+import { chromium } from 'playwright-core';
+import http from 'http'; import fs from 'fs'; import path from 'path';
+const T = { '.js': 'text/javascript', '.html': 'text/html', '.css':'text/css' };
+const server = http.createServer((q, r) => { const f = path.join(process.cwd(), decodeURIComponent(q.url.split('?')[0])); fs.readFile(f, (e, d) => { if (e) { r.writeHead(404); r.end(); return; } r.writeHead(200, { 'Content-Type': T[path.extname(f)] || 'application/octet-stream' }); r.end(d); }); }).listen(0);
+const b = await chromium.launch({ executablePath: process.env.HOME + '/.cache/ms-playwright/chromium_headless_shell-1255/chrome-headless-shell-linux-arm64/chrome-headless-shell', args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const p = await b.newPage({ viewport: { width: 640, height: 380 } }); p.setDefaultTimeout(300000);
+p.on('pageerror', e => console.log('err', e.message));
+await p.goto(`http://localhost:${server.address().port}/index.html?` + process.argv[2]);
+await p.waitForFunction(() => (window.__frames || 0) > 1);
+await p.evaluate(process.argv[3]);
+const f0 = await p.evaluate(() => window.__frames);
+await p.waitForFunction(f => window.__frames > f + 1, f0);
+await p.screenshot({ path: process.argv[4] });
+await b.close(); server.close();
