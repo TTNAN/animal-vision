@@ -1,0 +1,17 @@
+{
+  "name": "animal-vision",
+  "version": "2.0.0",
+  "private": true,
+  "description": "A toy-height 3D room seen through animal eyes",
+  "license": "MIT",
+  "scripts": {
+    "build": "esbuild src/main.js --bundle --minify --format=iife --target=es2020 --outfile=dist/app.js",
+    "dev": "esbuild src/main.js --bundle --format=iife --target=es2020 --outfile=dist/app.js --watch --servedir=.",
+    "capture": "node tools/capture.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0",
+    "playwright-core": "^1.48.0",
+    "three": "0.170.0"
+  }
+}

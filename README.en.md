@@ -1,90 +1,115 @@
-中文版：[README.md](README.md)
+中文版: [README.md](README.md)
 
-# animal-vision · One Room, Different Eyes
+# animal-vision · Down on the floor, through other eyes
 
-One family living room, one fixed viewpoint — and five different worlds, depending on whose eyes are looking through it: human, dog, cat, bee and eagle.
+A 3D kid's bedroom with the camera on the floor at toy height. Like a toy in *Toy Story*, you look up at the bed, the red ball on the rug, the sunflowers on the windowsill. Then you swap eyes: dog, cat, honeybee, eagle, pit viper.
 
-This is not a photo filter. We first built a real-looking living room — sofa, coffee table, TV cabinet, bookshelf, floor lamp, curtains, a red ball on a green rug, a vase of flowers on the coffee table — and then let five kinds of eyes take turns looking at it. The differences in colour and sharpness speak for themselves.
+![Human on the left, dog on the right](assets/cover.jpg)
 
-![The same living room through five kinds of eyes](assets/demo.gif)
-
-The animation cycles through human → dog → cat → bee → eagle, about 1.2 seconds per frame, on loop.
-
-## The idea in 30 seconds
-
-- **Where did the red ball go?** To human eyes, the little red ball stands out clearly against the green rug. To a dog, red and green merge, and the ball survives only as a difference in brightness — which is why dogs find a red ball by brightness and movement, not by colour.
-- **What appeared on the flowers?** Through a bee's eyes, the flower centres gain an ultraviolet "nectar guide" pattern, like a runway painted for pollinators. Human eyes see none of it.
-- **What changed on the bookshelf?** Through an eagle's eyes, the rows of book spines in the distance get sharper. Through a dog's or a cat's eyes, the same bookshelf turns into a blur.
-
-## How to use it
-
-There is nothing to install. This is a plain static page.
+## Open it and play
 
 ```bash
 git clone https://github.com/TTNAN/animal-vision.git
-cd animal-vision
 ```
 
-Then double-click `index.html`. No build step, no dependencies, no internet needed.
+Double-click `index.html`. The bundled `dist/app.js` is committed, so there is nothing to install and it works offline. You can also deploy `main` with Settings → Pages, usually at `https://TTNAN.github.io/animal-vision/`.
 
-To put it online: after pushing to GitHub, enable Pages in the repository's Settings → Pages, deploying from the `main` branch. The address is normally `https://TTNAN.github.io/animal-vision/`.
+| Action | Desktop | Phone |
+| --- | --- | --- |
+| Look around | Drag | One-finger drag |
+| Crawl | W A S D / arrow keys | Pad, bottom left |
+| Switch eyes | 1–6 or the bottom bar | Bottom bar |
+| Lights off | N | "Lights off" |
+| Snapshot | "Snapshot" | Same |
 
-## Five views, one line each
+## Six little quests
 
-| View | Colour | Sharpness | What jumps out |
-| --- | --- | --- | --- |
-| Human | Trichromatic: red, green and blue kept apart | The reference — sharpest | The red ball stands out; a flower is just a flower |
-| Dog | Dichromatic, cone peaks around 429 and 555 nm; red and green collapse into yellow-grey | Around 20/75, slightly soft | The ball survives only as brightness; the world turns blue and yellow |
-| Cat | Dichromatic, cone peaks around 450 and 555 nm; colours more muted | Noticeably lower than human vision, softer overall | Colours fade and blur, but dim light becomes easier to see in |
-| Bee | Trichromatic, but ultraviolet, blue and green — no red | Close to human, slightly softer | Red disappears; UV nectar guides appear on the flowers |
-| Eagle | Tetrachromatic, including ultraviolet | Far above human vision | Distant book spines sharpen; detail leaps out |
+The About panel jumps straight to each one:
 
-## Why the room contains what it contains
+1. 🔴 **Where did the red ball go?** To a dog, the red ball on the green rug is only a brightness difference, and the red and green blocks merge.
+2. 🌻 **The sunflower's UV bullseye.** To a bee, the petals are bright at the tips and dark at the centre, a runway to the nectar.
+3. 👁 **Who can read the bottom of the eye chart?** All six at once; the eagle's fovea works like a telephoto lens.
+4. 🐹 **Find the hamster in the dark.** We see black; the pit viper's heat pits light up the hamster, the hot cocoa and the radiator.
+5. 🌙 **Lights off: what does the cat see?** We see almost nothing; the cat still sees the room.
+6. ↔️ **How wide can a view be?** Turn on True field and the bee's and dog's views open up.
 
-Every object is there to make one difference visible — nothing is decoration for its own sake:
+Plus "peek out from under the bed": set height to "Own height" and crawl under as the cat.
 
-- **The red ball (a dog toy) on the green rug**: tests red–green distinction. Humans see red against green; dogs do not.
-- **The vase of flowers on the coffee table**: tests ultraviolet. Bees navigate by UV patterns in flower centres that human eyes cannot see at all.
-- **The wooden bookshelf on the right, with rows of differently coloured spines**: tests sharpness. The farther away, the bigger the gap between dog, cat and eagle.
-- **The grey fabric sofa, wooden coffee table, floor lamp, curtains, window, plants and TV cabinet**: they make the room a real home first, so the comparison means something. Nothing in it belongs in a lab.
+![Six pairs of eyes on the same rug](assets/grid.jpg)
 
-## A note on the science — what this is not
+| Dog · rug | Cat · lights off |
+| --- | --- |
+| ![](assets/shots/dog.jpg) | ![](assets/shots/cat-night.jpg) |
+| **Bee · flowers** | **Pit viper · find the hamster** |
+| ![](assets/shots/bee.jpg) | ![](assets/shots/snake.jpg) |
 
-This is an **approximation**, not a recording of what an animal experiences. No screen can show you another animal's subjective experience. What it can do is translate published measurements into something human eyes can read:
+## Six pairs of eyes
 
-- Dichromatic vision in dogs and cats uses a Machado / Brettel-style simulation, converted from each species' measured cone peaks (dog around 429 and 555 nm, cat around 450 and 555 nm), applied uniformly across the whole image — not just recolouring the ball.
-- Blur follows acuity: about 20/75 for dogs, lower for cats, sharpening for eagles. Brightness is preserved during the colour conversion, so that changing a colour does not darken or yellow the whole room and hide the real colour difference.
-- **Ultraviolet cannot be genuinely reproduced on an ordinary screen.** Screens emit no UV, and ordinary photographs contain no UV information. So the nectar-guide pattern on the flowers in the bee frame is an **illustration**: UV patterns on real flowers do exist, and the drawn shape follows their typical form, but it was not "recovered" from the photograph.
-- Likewise, the eagle's ultraviolet vision is not drawn separately — its difference from human vision here is shown through sharpness, which is what the image can honestly convey.
+| Eyes | Colour | Acuity | Field | At night |
+| --- | --- | --- | --- | --- |
+| Human | Trichromat, ~420 / 530 / 560 nm | 20/20, the reference | ~200° | Reference |
+| Dog | Dichromat, ~429 / 555 nm, red and green merge | ~20/75 | ~240–250° | Tapetum, better than us |
+| Cat | Dichromat, ~450 / 555 nm, washed out | ~20/100–20/200 | ~200° | Needs ~1/6 of our light |
+| Honeybee | UV / blue / green, blind to red; false colour | Each facet ~1.5–2° | Nearly 360° | Poor |
+| Eagle | Tetrachromat, oil droplets saturate colour | ~20/5, magnified fovea | 200°+ | Worse than us |
+| Pit viper | Dichromat eyes + heat-sensing pits | Blurry heat image | ~170° (illustrative) | Heat needs no light |
 
-If anything here disagrees with the literature, please open an issue — with a source, if you have one.
+## Why these things are in the room
 
-## Project structure
+Each object exposes one difference:
+
+- **Red ball and red/green blocks on a green rug**: red–green discrimination.
+- **Sunflowers and flowers on the sill**: carry a UV map; only the bee sees the bullseye.
+- **Eye chart on the toy chest** and book spines: acuity.
+- **Hamster cage, hot cocoa, radiator, lamp, window glass**: every object has a temperature for the viper's heat view.
+- **Under the bed, toy chest, doorway, rug, flowers, hamster cage**: six camera spots, all places a toy would sit.
+- Wardrobe, desk, nightstand, a train circling its track, ceiling fan, glow stars, rocket, dinosaur: so it reads as a real kid's room first.
+
+## The science: what this is not
+
+This is an **approximation**. No screen can give you another animal's experience; it can translate published measurements into a picture we can read.
+
+- **Dichromacy** (dog, cat, the viper's eyes) is simulated in linear light with dichromat matrices tuned to each species' cone peaks, preserving luminance.
+- **Acuity** becomes a per-species blur radius; the eagle is sharpened and magnified at the centre to suggest the deep fovea.
+- **Screens cannot show UV.** UV is a separate painted map in the scene (the bullseye shape is typical of such patterns, not measured data), and the bee view uses **false colour**: green→red, blue→green, UV→blue.
+- **The bee's hex mosaic** shows the scale of compound-eye resolution; real ommatidia are not a regular grid.
+- **Heat** is rendered from a temperature set on each object, then blurred; viper fields and resolution vary a lot by species, so this is illustrative.
+- **Very wide fields** can only be squeezed onto a flat screen; True field caps at about 230°, beyond which it turns into a tiny-planet swirl.
+- Night mode's colour loss, noise and gain are illustrative, not measured sensitivity curves per species.
+
+If something disagrees with the literature, please open an issue, ideally with a source.
+
+## Hacking on it
+
+```bash
+npm install
+npm run dev      # rebuild on change and serve locally
+npm run build    # writes dist/app.js
+npm run capture  # regenerate the screenshots in assets/ (needs Chrome)
+```
 
 ```text
 animal-vision/
-├── index.html                 # Chinese-first showcase page, EN toggle top right
-├── README.md                  # Chinese version (shown on the GitHub homepage)
-├── README.en.md               # English version (this file)
-├── assets/
-│   ├── demo.gif               # Five-view looping comparison (960×680, 1.6 MB)
-│   └── living-room-base.png   # The living room base image
-└── build_demo.py              # Script that generates demo.gif (Pillow + NumPy)
+├── index.html          # page shell, Chinese first, EN toggle top right
+├── style.css
+├── dist/app.js         # bundled code (what index.html loads)
+├── src/
+│   ├── main.js         # rendering, movement, collision, split views, quests, URL params
+│   ├── room.js         # room, furniture, toys, lights, camera spots, animation
+│   ├── textures.js     # procedural textures (wallpaper, floor, eye chart, UV petals…)
+│   ├── vision.js       # per-species parameters and the shader
+│   └── i18n.js         # Chinese/English copy and quests
+├── tools/capture.mjs   # screenshot script
+└── assets/             # README and social-card images
 ```
 
-`build_demo.py` works from a single base image: all five views are colour / sharpness / brightness transforms of the same photograph, so only the "eyes" change between frames — the room itself never does.
+**How it renders**: each frame, cube cameras at the eye position capture all directions (normal colour, UV and temperature), and a shader projects, blurs, recolours and adds mosaic or heat per species. One position feeds all six eyes, so split and grid views show the same instant.
 
-To regenerate the animation:
+**Share a view** with URL parameters, e.g. `index.html?sp=bee&view=flower&mode=split`: `sp` (human/dog/cat/bee/eagle/snake), `view` (door/rug/bed/chest/flower/hamster), `mode` (single/split/grid), `h` (toy/baby/own), `night=1`, `fov=1`, `lang=en`.
 
-```bash
-pip install pillow numpy
-python3 build_demo.py
-```
+## Versions
 
-## Current scope
+- **v2**: 3D kid's room, toy-height camera, six eyes (new: pit viper heat), split and grid views, lights off, true field, six quests, six camera spots.
+- **v1**: one AI-generated living-room photo with five filters; see tag `v1`.
 
-This first version does one thing: **one fixed living room, five kinds of eyes, side by side**. No photo uploads, no live camera, no night mode — those can come later. First, get this one scene right.
-
-## License
-
-MIT
+MIT License
