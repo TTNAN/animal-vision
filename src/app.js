@@ -7,11 +7,11 @@ const qs = new URLSearchParams(location.search);
 
 const state = {
   lang: qs.get('lang') || (/^zh/i.test(navigator.language) ? 'zh' : 'en'),
-  img: byId(SAMPLES, qs.get('img')) ? qs.get('img') : 'orchard',
+  img: byId(SAMPLES, qs.get('img')) ? qs.get('img') : 'portrait',
   eye: qs.get('eye') && byId(SPECIES, qs.get('eye')) && qs.get('eye') !== 'human' ? qs.get('eye') : null,
   light: byId(LIGHTS, qs.get('light')) ? qs.get('light') : null,
   view: qs.get('view') === 'grid' ? 'grid' : 'compare',
-  split: qs.has('split') ? Math.min(1, Math.max(0, parseFloat(qs.get('split')))) : 0.5,
+  split: qs.has('split') ? Math.min(1, Math.max(0, parseFloat(qs.get('split')))) : (byId(SAMPLES, qs.get('img') || 'portrait')?.split ?? 0.5),
   loupe: null, loupeOn: true, facets: true,
   imgW: 3840, imgH: 2561, upload: null,
 };
@@ -113,7 +113,7 @@ async function useSample(id, { keepEye = false } = {}) {
   const tok = ++loadToken;
   state.img = id; state.upload = null;
   state.imgW = s.w; state.imgH = s.h;
-  if (!keepEye) { state.eye = s.eye; state.light = s.light; }
+  if (!keepEye) { state.eye = s.eye; state.light = s.light; state.split = s.split ?? 0.5; placeDivider(); }
   syncUI(); layout();
   $('loading').classList.add('on');
   try {
@@ -189,6 +189,7 @@ function syncTheme() {
 let prevView = null, prevLight = null, prevEye = null;
 const XT = {
   zh: {
+    pickH: '换一张照片', pickUp: '上传照片', pickCam: '自拍一张',
     stats: [['6', '双眼睛'], ['300–700', '纳米光谱'], ['0.35′–60′', '分辨角']],
     atlasK: 'Atlas · 图谱', atlasH: '六双眼睛，并排看', atlasP: '同一把尺子量六种视觉：左边是每种视锥最敏感的波长，中间是能分辨的最小角度，右边是暗处的增益。点任意一行切换。',
     cols: ['眼睛', '视锥峰值 300–700 nm', '清晰度', '弱光'],
@@ -199,6 +200,7 @@ const XT = {
     capAll: (l, p) => `<b>六双眼睛</b>同时，看${l}的<em>${p}</em>`,
   },
   en: {
+    pickH: 'Change photo', pickUp: 'Upload', pickCam: 'Take a selfie',
     stats: [['6', 'eyes'], ['300–700', 'nm of spectrum'], ['0.35′–60′', 'resolving angle']],
     atlasK: 'Atlas', atlasH: 'Six eyes, side by side', atlasP: 'One ruler for six visual systems: where each cone peaks, the finest angle each eye resolves, and how much it gains in the dark. Tap a row to switch.',
     cols: ['Eye', 'Cone peaks 300–700 nm', 'Acuity', 'Low light'],
@@ -290,6 +292,20 @@ function buildThumbs() {
   up.classList.toggle('on', !!state.upload);
 }
 
+/* stage "+" : change the photo without scrolling */
+function buildPicker() {
+  const X = XT[state.lang], pk = $('picker');
+  pk.querySelector('.pk-h').textContent = X.pickH;
+  pk.querySelector('.pk-list').innerHTML = SAMPLES.map((s) =>
+    `<button type="button" data-id="${s.id}" class="${s.id === state.img && !state.upload ? 'on' : ''}"><img src="assets/photos/${s.id}-thumb.jpg" alt="" loading="lazy"><span>${s.title[state.lang]}</span></button>`).join('');
+  pk.querySelectorAll('.pk-list button').forEach((b) => b.onclick = () => { closePicker(); useSample(b.dataset.id); });
+  $('pkUp').lastElementChild.textContent = X.pickUp;
+  $('pkCam').lastElementChild.textContent = X.pickCam;
+  $('swapBtn').setAttribute('aria-label', X.pickH); $('swapBtn').title = X.pickH;
+}
+function openPicker() { buildPicker(); $('picker').classList.add('on'); $('swapBtn').setAttribute('aria-expanded', 'true'); }
+function closePicker() { $('picker').classList.remove('on'); $('swapBtn').setAttribute('aria-expanded', 'false'); }
+
 function setEye(id) {
   if (id === 'human' && state.view !== 'grid') return;
   state.eye = id === 'human' ? state.eye : id;
@@ -377,7 +393,7 @@ function syncUI() {
   $('uploadS').textContent = t.uploadSub;
   buildThumbs();
   const X = XT[state.lang];
-  $('stats').innerHTML = X.stats.map(([v, k]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
+  $('stats').innerHTML = $('statsM').innerHTML = X.stats.map(([v, k]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
   const ro = $('readout'), roHTML = readout(sp);
   if (ro.dataset.key !== key) { ro.dataset.key = key; ro.innerHTML = roHTML; ro.classList.remove('swap'); void ro.offsetWidth; ro.classList.add('swap'); }
   $('atlasK').textContent = X.atlasK; $('atlasH').textContent = X.atlasH; $('atlasP').textContent = X.atlasP;
@@ -475,6 +491,13 @@ $('lang').onclick = () => { state.lang = state.lang === 'zh' ? 'en' : 'zh'; sync
 $('theme').onclick = () => applyTheme(isLight() ? 'dark' : 'light');
 syncTheme();
 $('file').onchange = (e) => useFile(e.target.files[0]);
+$('cam').onchange = (e) => { closePicker(); useFile(e.target.files[0]); };
+$('file').addEventListener('change', closePicker);
+$('swapBtn').addEventListener('pointerdown', (e) => e.stopPropagation());
+$('picker').addEventListener('pointerdown', (e) => e.stopPropagation());
+$('swapBtn').onclick = () => $('picker').classList.contains('on') ? closePicker() : openPicker();
+addEventListener('pointerdown', (e) => { if (!e.target.closest('#picker, #swapBtn')) closePicker(); });
+addEventListener('keydown', (e) => { if (e.key === 'Escape') closePicker(); });
 addEventListener('paste', (e) => { const f = [...(e.clipboardData?.files || [])].find((f) => /^image\//.test(f.type)); if (f) useFile(f); });
 let dragDepth = 0;
 addEventListener('dragenter', (e) => { if ([...e.dataTransfer.types].includes('Files')) { dragDepth++; document.body.classList.add('dragover'); } });

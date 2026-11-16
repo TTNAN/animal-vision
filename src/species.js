@@ -80,10 +80,14 @@ export const MATRICES = {
 export const LIGHTS = [
   { id: 'day', L: 1, name: { zh: '原光', en: 'As shot' } },
   { id: 'dusk', L: 0.15, name: { zh: '黄昏', en: 'Dusk' } },
-  { id: 'night', L: 0.025, name: { zh: '夜晚', en: 'Night' } },
+  { id: 'night', L: 0.04, name: { zh: '夜晚', en: 'Night' } },
 ];
 
 export const SAMPLES = [
+  { id: 'portrait', eye: 'dog', light: 'day', split: 0.69, w: 3840, h: 2560,
+    title: { zh: '人像', en: 'Portrait' },
+    hint: { zh: '你在宠物眼里长什么样？橙色南瓜还在，红唇和脸色却淡了。', en: 'What do you look like to your pet? The pumpkins survive, the lipstick and the blush fade.' },
+    credit: 'Frank Marino', page: 'https://commons.wikimedia.org/wiki/File:In_front_of_pumpkin_shelves_(Unsplash).jpg' },
   { id: 'orchard', eye: 'dog', light: 'day', w: 3840, h: 2561,
     title: { zh: '果园', en: 'Orchard' },
     hint: { zh: '满树的红苹果，到了狗眼里就藏进了叶子。', en: 'A tree full of red apples. To a dog they hide among the leaves.' },
@@ -96,10 +100,6 @@ export const SAMPLES = [
     title: { zh: '山谷', en: 'Valley' },
     hint: { zh: '把鹰的放大镜移到远处的雪山和林线上。', en: 'Move the eagle\'s loupe over the far snowfields and the tree line.' },
     credit: 'Kalen Emsley', page: 'https://commons.wikimedia.org/wiki/File:Wet_mountain_valley_(Unsplash).jpg' },
-  { id: 'market', eye: 'bee', light: 'day', w: 3840, h: 2192,
-    title: { zh: '集市', en: 'Market' },
-    hint: { zh: '一摊水果的颜色，在不同眼睛里能剩下多少？', en: 'How much of a fruit stall\'s colour survives each eye?' },
-    credit: 'Daderot', page: 'https://commons.wikimedia.org/wiki/File:Fruit_market_in_Genoa,_Italy_-_DSC01268.JPG' },
   { id: 'night', eye: 'cat', light: 'night', w: 3840, h: 2550,
     title: { zh: '夜街', en: 'Night street' },
     hint: { zh: '调到夜晚：人眼只剩路灯，猫还看得见站着的人。', en: 'Switch to night: we see only the lamps, the cat still sees the person.' },

@@ -39,19 +39,20 @@
 - **三种光线**：原光、黄昏、夜晚。光线一暗，人眼先失去颜色，接着被噪点淹没，猫和狗却还看得清。
 - **全部视图**：六双眼睛并排看同一张照片。
 - **鹰的放大镜**：鹰看得比屏幕能显示的还清楚，所以给它配了一个可以移动的 3 倍放大镜。
+- **随手换图**：照片左下角的「＋」可以直接换样图、上传照片，手机上还能直接自拍。
 - **用你自己的照片**：可以拖进来、粘贴或点选。照片只在你的浏览器里用 GPU 处理，不会上传。
 - **保存图片**：一键导出带标签的对比图。
 - **图谱**：用同一把尺子并排比较六种眼睛的视锥峰值、清晰度和弱光增益。点任意一行就能切换到那双眼睛。
 - **深色 / 浅色两种主题**：默认是深色，右上角的按钮可以切换到暖色纸感的浅色主题。选择会记在浏览器里，刷新后不变。
 - **中文 / English**：页面会按浏览器语言自动选择，也可以随时切换。
-- **样图**：6 张 4K 样图，都是 CC0 授权。分别是果园、向日葵、山谷、集市、夜街和猫，每张都标了推荐用哪双眼睛看。
+- **样图**：6 张 4K 样图，都是 CC0 授权。分别是人像、果园、向日葵、山谷、夜街和猫，每张都标了推荐用哪双眼睛看。默认打开的是人像，看看你在宠物眼里长什么样。
 
 | 狗：红苹果藏进了叶子里 | 蜜蜂：假色和复眼 |
 |---|---|
 | ![狗](assets/shots/dog.jpg) | ![蜜蜂](assets/shots/bee.jpg) |
 | **猫：夜里的街道** | **鹰：用放大镜看远山** |
 | ![猫](assets/shots/cat-night.jpg) | ![鹰](assets/shots/eagle.jpg) |
-| **小鼠：猫成了一团模糊** | **全部：六双眼睛** |
+| **小鼠：猫成了一团模糊** | **全部：六双眼睛看同一张脸** |
 | ![小鼠](assets/shots/mouse.jpg) | ![全部](assets/shots/grid.jpg) |
 
 ## 六双眼睛
@@ -90,14 +91,14 @@
 | 切换眼睛 | 点底部的按钮，或按键盘 `1`–`5` |
 | 全部视图 | 点「全部」，或按 `G` |
 | 微调分割线 | 选中分割线后按 `←` / `→`，按住 `Shift` 移动得更多 |
-| 放进你的照片 | 拖进页面，用 `Ctrl/⌘ + V` 粘贴，或点「用你的照片」 |
+| 换图 / 放进你的照片 | 点照片左下角的 `＋`，拖进页面，或用 `Ctrl/⌘ + V` 粘贴 |
 | 切换主题 | 右上角的太阳 / 月亮按钮 |
 
 **URL 参数**（可以直接分享当前画面）：
 
 | 参数 | 取值 |
 |---|---|
-| `img` | `orchard` `sunflower` `valley` `market` `night` `cat` |
+| `img` | `portrait`（默认） `orchard` `sunflower` `valley` `night` `cat` |
 | `eye` | `dog` `cat` `bee` `eagle` `mouse` |
 | `light` | `day` `dusk` `night` |
 | `view` | `grid`（全部视图） |
@@ -145,10 +146,10 @@ tools/capture.mjs   截图脚本
 
 样图全部来自 Wikimedia Commons，都是 CC0 公共领域：
 
+[人像](https://commons.wikimedia.org/wiki/File:In_front_of_pumpkin_shelves_(Unsplash).jpg) Frank Marino ·
 [果园](https://commons.wikimedia.org/wiki/File:Tree_with_red_apples_in_Barkedal_1.jpg) W.carter ·
 [向日葵](https://commons.wikimedia.org/wiki/File:Sunflower_and_bees.jpg) Mustang Joe ·
 [山谷](https://commons.wikimedia.org/wiki/File:Wet_mountain_valley_(Unsplash).jpg) Kalen Emsley ·
-[集市](https://commons.wikimedia.org/wiki/File:Fruit_market_in_Genoa,_Italy_-_DSC01268.JPG) Daderot ·
 [夜街](https://commons.wikimedia.org/wiki/File:Night_street_in_Udagawach%C5%8D,_Tokyo_(53335292514).jpg) Romain Guy ·
 [猫](https://commons.wikimedia.org/wiki/File:Young_tabby_cat_keeping_watch.jpg) W.carter
 

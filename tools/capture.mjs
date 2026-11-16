@@ -30,8 +30,9 @@ function launchOptions() {
 }
 
 const DEFAULT = [
-  ['img=orchard&eye=dog&split=0.5&lang=zh@full', 'assets/cover.jpg'],
-  ['img=market&view=grid&split=0.5&lang=zh@stage', 'assets/shots/grid.jpg'],
+  ['img=portrait&lang=zh@full', 'assets/cover.jpg'],
+  ['img=portrait&theme=light&lang=zh@full', 'assets/cover-light.jpg'],
+  ['img=portrait&view=grid&lang=zh@stage', 'assets/shots/grid.jpg'],
   ['img=orchard&eye=dog&split=0.5&lang=zh@stage', 'assets/shots/dog.jpg'],
   ['img=sunflower&eye=bee&split=0.25&lang=zh@stage', 'assets/shots/bee.jpg'],
   ['img=night&eye=cat&light=night&split=0.5&lang=zh@stage', 'assets/shots/cat-night.jpg'],

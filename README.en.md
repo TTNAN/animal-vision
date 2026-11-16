@@ -39,19 +39,20 @@ Drag the line to see how a dog, a cat, a honeybee, an eagle and a mouse see the 
 - **Three kinds of light**: as shot, dusk and night. As the light fades, human eyes lose colour first and then drown in noise, while cats and dogs still see.
 - **All six**: every eye side by side on one photo.
 - **Eagle loupe**: an eagle out-resolves your screen, so it gets a movable 3× loupe.
+- **Quick swap**: the `+` at the bottom left of the photo changes the sample or uploads your own, and on a phone you can take a selfie straight away.
 - **Your own photo**: drop, paste or choose one. It's processed on your GPU in the browser and never uploaded.
 - **Save image**: export a labelled comparison in one click.
 - **Atlas**: all six eyes on one scale, comparing cone peaks, acuity and low-light gain. Click a row to switch to that eye.
 - **Dark and light themes**: dark by default. The button at the top right switches to a warm, paper-like light theme, and your choice is remembered after a refresh.
 - **中文 / English**: the page follows your browser language, and you can switch at any time.
-- **Samples**: six 4K CC0 photos (orchard, sunflower, valley, market, night street and cat), each with a suggested eye.
+- **Samples**: six 4K CC0 photos (portrait, orchard, sunflower, valley, night street and cat), each with a suggested eye. It opens on the portrait: what you look like to your pet.
 
 | Dog: red apples vanish into leaves | Bee: false colour and facets |
 |---|---|
 | ![Dog](assets/shots/dog.jpg) | ![Bee](assets/shots/bee.jpg) |
 | **Cat: a street at night** | **Eagle: loupe on distant peaks** |
 | ![Cat](assets/shots/cat-night.jpg) | ![Eagle](assets/shots/eagle.jpg) |
-| **Mouse: a cat as a soft blur** | **All six** |
+| **Mouse: a cat as a soft blur** | **All six eyes on one face** |
 | ![Mouse](assets/shots/mouse.jpg) | ![All](assets/shots/grid.jpg) |
 
 ## The six eyes
@@ -90,14 +91,14 @@ These are **grounded approximations**, not what an animal actually experiences.
 | Switch eye | Click the buttons under the photo, or press `1`–`5` |
 | All six | Click "All six", or press `G` |
 | Nudge the divider | Focus it and press `←` / `→`; hold `Shift` for bigger steps |
-| Use your photo | Drop it on the page, paste with `Ctrl/⌘ + V`, or click "Use your photo" |
+| Change or add a photo | Click the `+` at the bottom left of the photo, drop a file on the page, or paste with `Ctrl/⌘ + V` |
 | Switch theme | The sun / moon button at the top right |
 
 **URL parameters** (share exactly what you see):
 
 | Parameter | Values |
 |---|---|
-| `img` | `orchard` `sunflower` `valley` `market` `night` `cat` |
+| `img` | `portrait` (default) `orchard` `sunflower` `valley` `night` `cat` |
 | `eye` | `dog` `cat` `bee` `eagle` `mouse` |
 | `light` | `day` `dusk` `night` |
 | `view` | `grid` (all six) |
@@ -145,10 +146,10 @@ tools/capture.mjs   screenshot script
 
 All samples come from Wikimedia Commons and are CC0 public domain:
 
+[Portrait](https://commons.wikimedia.org/wiki/File:In_front_of_pumpkin_shelves_(Unsplash).jpg) Frank Marino ·
 [Orchard](https://commons.wikimedia.org/wiki/File:Tree_with_red_apples_in_Barkedal_1.jpg) W.carter ·
 [Sunflower](https://commons.wikimedia.org/wiki/File:Sunflower_and_bees.jpg) Mustang Joe ·
 [Valley](https://commons.wikimedia.org/wiki/File:Wet_mountain_valley_(Unsplash).jpg) Kalen Emsley ·
-[Market](https://commons.wikimedia.org/wiki/File:Fruit_market_in_Genoa,_Italy_-_DSC01268.JPG) Daderot ·
 [Night street](https://commons.wikimedia.org/wiki/File:Night_street_in_Udagawach%C5%8D,_Tokyo_(53335292514).jpg) Romain Guy ·
 [Cat](https://commons.wikimedia.org/wiki/File:Young_tabby_cat_keeping_watch.jpg) W.carter
 
