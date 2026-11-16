@@ -16,7 +16,7 @@
 <body>
 <div class="grain" aria-hidden="true"></div>
 
-<header class="top">
+<header class="top enter" style="--d:0">
   <a class="mark" href="./" aria-label="Animal Vision">
     <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13"/><path d="M16 3a13 13 0 0 1 0 26z"/></svg>
     <span class="mark-en">Animal Vision</span><span class="mark-zh">动物之眼</span>
@@ -31,15 +31,19 @@
 
 <main>
   <section class="intro">
-    <h1 id="tagline">同一个世界，六双眼睛。</h1>
-    <p id="lede" class="lede"></p>
+    <p class="eyebrow enter" style="--d:1" id="eyebrow"><b>Comparative Vision</b><span>六种视觉系统 · Six visual systems</span></p>
+    <h1 id="tagline" class="enter" style="--d:2">同一个世界，六双眼睛。</h1>
+    <p id="lede" class="lede enter" style="--d:3"></p>
   </section>
 
   <section class="stage-wrap">
     <div class="studio">
-    <div class="stage-col">
+    <div class="stage-col enter" style="--d:4">
+    <div class="halo" aria-hidden="true"></div>
     <div class="stage" id="stage">
       <canvas id="view" aria-label="comparison"></canvas>
+      <div class="glow" aria-hidden="true"></div>
+      <div class="ticks" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
       <div class="tag tag-l" id="tagL"></div>
       <div class="tag tag-r" id="tagR"></div>
       <div class="divider" id="divider" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-label="split">
@@ -52,7 +56,7 @@
       <p class="nogl" id="nogl" hidden></p>
     </div>
 
-    <div class="bar">
+    <div class="bar enter" style="--d:5">
       <div class="eyes" id="eyes" role="tablist"></div>
       <div class="ctrl">
         <div class="seg" id="lights" role="radiogroup"></div>
@@ -62,7 +66,7 @@
         </button>
       </div>
     </div>
-  <div class="gallery">
+  <div class="gallery enter" style="--d:6">
     <div class="sec-h"><h3 id="samplesH"></h3><p class="hint" id="hint"></p></div>
     <div class="thumbs" id="thumbs">
       <label class="upload" id="uploadTile">
@@ -73,7 +77,8 @@
     </div>
   </div>
     </div>
-  <aside class="about" id="about">
+  <aside class="about enter" style="--d:5" id="about">
+    <div class="about-top"><span class="idx" id="spIdx"></span><span id="spKind"></span></div>
     <div class="about-head">
       <p class="latin" id="latin"></p>
       <h2 id="spName"></h2>
@@ -81,6 +86,7 @@
       <p class="caveat" id="spCaveat"></p>
       <div class="opts" id="opts"></div>
     </div>
+    <div class="meters" id="meters"></div>
     <dl class="facts" id="facts"></dl>
   </aside>
     </div>

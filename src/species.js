@@ -15,7 +15,7 @@ export const ARCMIN_PER_CSS_PX = 1.28;
 
 export const SPECIES = [
   {
-    id: 'human', mode: 0, accent: '#e9e4da', mar: 1, gain: 1, sat: 1, matrix: null,
+    id: 'human', mode: 0, accent: '#e6e1d8', cones: [420, 530, 560], mar: 1, gain: 1, sat: 1, matrix: null,
     name: { zh: '人', en: 'Human' }, latin: 'Homo sapiens',
     facts: {
       zh: [['色觉', '三色：420 / 530 / 560 nm'], ['视力', '20/20，约 30 周/度'], ['视野', '约 200°，双眼重叠 120°'], ['弱光', '参照值']],
@@ -24,7 +24,7 @@ export const SPECIES = [
     line: { zh: '对照组。其余五双眼睛都和它比。', en: 'The control. Every other eye is measured against it.' },
   },
   {
-    id: 'dog', mode: 1, accent: '#d39a5e', mar: 3.75, gain: 3.5, sat: 0.95, matrix: 'deutan',
+    id: 'dog', mode: 1, accent: '#c8a06a', cones: [429, 555], mar: 3.75, gain: 3.5, sat: 0.95, matrix: 'deutan',
     name: { zh: '狗', en: 'Dog' }, latin: 'Canis familiaris',
     facts: {
       zh: [['色觉', '二色：约 429 / 555 nm，红绿合并'], ['视力', '约 20/75'], ['视野', '约 240°，双眼重叠 60°'], ['弱光', '有反光层，约强 3–4 倍']],
@@ -33,7 +33,7 @@ export const SPECIES = [
     line: { zh: '蓝和黄依然分明，红和绿却成了同一种土黄。', en: 'Blue and yellow survive. Red and green collapse into one khaki.' },
   },
   {
-    id: 'cat', mode: 2, accent: '#9aa3b5', mar: 7, gain: 6, sat: 0.55, matrix: 'deutan',
+    id: 'cat', mode: 2, accent: '#9fb1c9', cones: [450, 555], mar: 7, gain: 6, sat: 0.55, matrix: 'deutan',
     name: { zh: '猫', en: 'Cat' }, latin: 'Felis catus',
     facts: {
       zh: [['色觉', '二色：约 450 / 555 nm，颜色很淡'], ['视力', '约 20/100–20/200'], ['视野', '约 200°，双眼重叠 140°'], ['弱光', '只需人约 1/6 的光']],
@@ -42,7 +42,7 @@ export const SPECIES = [
     line: { zh: '白天的猫是近视的色弱；把光线调到夜晚，它才是主角。', en: 'By day a cat is short-sighted and colour-poor. Turn the light down and it takes over.' },
   },
   {
-    id: 'bee', mode: 3, accent: '#f0c03c', mar: 60, hex: 0.5, gain: 0.8, sat: 0.8, matrix: 'bee',
+    id: 'bee', mode: 3, accent: '#a99bdc', cones: [344, 436, 544], mar: 60, hex: 0.5, gain: 0.8, sat: 0.8, matrix: 'bee',
     name: { zh: '蜜蜂', en: 'Honeybee' }, latin: 'Apis mellifera',
     facts: {
       zh: [['色觉', '三色：紫外 344 / 蓝 436 / 绿 544 nm，看不见红'], ['视力', '每个小眼约 1–2°，非常粗'], ['视野', '接近 360°'], ['弱光', '白天活动，弱光很差']],
@@ -52,7 +52,7 @@ export const SPECIES = [
     caveat: { zh: '照片里没有紫外信息，紫外通道是按颜色估计的。小眼格子按真实的一半大小画出，方便看清画面。', en: 'Photos carry no UV, so the UV channel is estimated from colour. Facets are drawn at half their real size so the scene stays legible.' },
   },
   {
-    id: 'eagle', mode: 4, accent: '#c9874a', mar: 0.35, gain: 0.8, sat: 1.15, matrix: null,
+    id: 'eagle', mode: 4, accent: '#e8d7a8', cones: [405, 450, 505, 565], mar: 0.35, gain: 0.8, sat: 1.15, matrix: null,
     name: { zh: '鹰', en: 'Eagle' }, latin: 'Aquila audax',
     facts: {
       zh: [['色觉', '四色，视锥油滴让颜色更饱和'], ['视力', '约 20/5，是人的 2.5–3.5 倍'], ['视野', '约 200°+，双眼重叠 30–50°'], ['弱光', '白天猎手，夜里不如人']],
@@ -61,7 +61,7 @@ export const SPECIES = [
     line: { zh: '屏幕画不出比你眼睛更细的东西，所以给你一个放大镜：在右半边移动或按住，借用它的中央凹。', en: 'A screen can\'t show more detail than your eye resolves, so here is a loupe: hover or press on the right half to borrow its fovea.' },
   },
   {
-    id: 'mouse', mode: 5, accent: '#b9a28c', mar: 60, gain: 4, sat: 0.5, matrix: 'protan',
+    id: 'mouse', mode: 5, accent: '#c4a59c', cones: [360, 508], mar: 60, gain: 4, sat: 0.5, matrix: 'protan',
     name: { zh: '小鼠', en: 'Mouse' }, latin: 'Mus musculus',
     facts: {
       zh: [['色觉', '二色：紫外 360 / 绿 508 nm，没有红'], ['视力', '约 0.5 周/度，约 20/1200'], ['视野', '约 300°+'], ['弱光', '夜行，视杆为主']],

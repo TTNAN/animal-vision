@@ -31,8 +31,8 @@ const gridShape = () => (isMobile() ? [2, 3] : [3, 2]);
 /* ---------------- layout ---------------- */
 let css = { w: 0, h: 0 };
 function layout() {
-  const wrap = stage.parentElement;
-  const avail = wrap.clientWidth;
+  const col = stage.parentElement;
+  const avail = getComputedStyle(col).display === 'contents' ? col.parentElement.clientWidth : col.clientWidth;
   const [cols, rows] = gridShape();
   const aspect = state.view === 'grid' ? (cols * state.imgW) / (rows * state.imgH) : state.imgW / state.imgH;
   const top = stage.getBoundingClientRect().top + scrollY;
@@ -42,6 +42,7 @@ function layout() {
   css = { w, h };
   stage.style.width = w + 'px'; stage.style.height = h + 'px';
   document.documentElement.style.setProperty('--stageW', w + 'px');
+  document.documentElement.style.setProperty('--stageH', h + 'px');
   if (R) { canvas.width = Math.round(w * DPR()); canvas.height = Math.round(h * DPR()); }
   placeDivider();
   placeGridTags();
@@ -123,6 +124,7 @@ async function useSample(id, { keepEye = false } = {}) {
     if (tok !== loadToken) return;
     R?.setImage(fit(full)); draw();
     window.__ready = (window.__ready || 0) + 1;
+    document.body.classList.add('loaded');
   } finally { if (tok === loadToken) $('loading').classList.remove('on'); }
 }
 
@@ -162,6 +164,20 @@ async function useFile(file) {
 }
 
 /* ---------------- UI ---------------- */
+let prevView = null, prevLight = null;
+const ML = { zh: ['光谱峰值', '清晰度', '弱光增益', '人'], en: ['Cone peaks', 'Acuity', 'Low-light gain', 'human'] };
+function meters(sp) {
+  const L = ML[state.lang];
+  const x = (nm) => ((nm - 300) / 400 * 100).toFixed(2) + '%';
+  const ticks = (sp.cones || []).map((nm) => `<i style="--x:${x(nm)}" title="${nm} nm"></i>`).join('');
+  const lg = (m) => Math.log(60 / m) / Math.log(60 / 0.35);
+  const acu = Math.max(0.03, lg(sp.mar)), hum = lg(1);
+  const gain = Math.min(1, Math.log(1 + sp.gain) / Math.log(7)), hg = Math.log(2) / Math.log(7);
+  return `<div class="meter"><div class="meter-h"><span>${L[0]}</span><em>${(sp.cones || []).join(' · ')} nm</em></div>
+    <div class="spec"><span class="band"></span>${ticks}</div><div class="spec-scale"><span>300</span><span>UV · 380</span><span>500</span><span>700</span></div></div>
+  <div class="meter has-mark"><div class="meter-h"><span>${L[1]}</span><em>${sp.mar}′</em></div><div class="rail"><b style="--v:${(acu * 100).toFixed(1)}%"></b><s style="--h:${(hum * 100).toFixed(1)}%" data-l="${L[3]}"></s></div></div>
+  <div class="meter has-mark"><div class="meter-h"><span>${L[2]}</span><em>×${sp.gain}</em></div><div class="rail"><b style="--v:${(gain * 100).toFixed(1)}%"></b><s style="--h:${(hg * 100).toFixed(1)}%" data-l="${L[3]}"></s></div></div>`;
+}
 const ICONS = {
   compare: '<svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="4" width="15" height="12" rx="2"/><path d="M10 4v12"/></svg>',
   grid: '<svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="4" width="6.5" height="5.2" rx="1.2"/><rect x="11" y="4" width="6.5" height="5.2" rx="1.2"/><rect x="2.5" y="10.8" width="6.5" height="5.2" rx="1.2"/><rect x="11" y="10.8" width="6.5" height="5.2" rx="1.2"/></svg>',
@@ -242,15 +258,20 @@ function syncUI() {
   document.documentElement.style.setProperty('--acc', sp.accent);
   $('lang').textContent = state.lang === 'zh' ? 'EN' : '中';
   $('tagline').textContent = t.tagline;
+  $('eyebrow').innerHTML = `<b>Comparative Vision</b><span>${state.lang === 'zh' ? '六种视觉系统的比较' : 'Six visual systems, side by side'}</span>`;
   $('lede').textContent = t.lede;
   $('tagL').innerHTML = `${t.you}`;
-  $('tagR').innerHTML = `${sp.name[state.lang]} <i>${sp.latin}</i>`;
+  const tagR = $('tagR'), tagHTML = `${sp.name[state.lang]} <i>${sp.latin}</i>`;
+  if (tagR.innerHTML !== tagHTML) { tagR.innerHTML = tagHTML; tagR.classList.remove('swap'); void tagR.offsetWidth; tagR.classList.add('swap'); }
+  document.body.dataset.eye = sp.id; document.body.dataset.light = state.light;
+  if (prevView !== null && (prevView !== state.view || prevLight !== state.light)) { stage.classList.remove('flash'); void stage.offsetWidth; stage.classList.add('flash'); }
+  prevView = state.view; prevLight = state.light;
   $('saveText').textContent = t.download;
   $('dropText').textContent = t.dropHere;
   $('nogl').textContent = t.noGL;
   stage.classList.toggle('grid', state.view === 'grid');
   stage.classList.toggle('eagle', state.view !== 'grid' && state.eye === 'eagle');
-  stage.parentElement.classList.toggle('gridmode', state.view === 'grid');
+  document.querySelector('.stage-wrap').classList.toggle('gridmode', state.view === 'grid');
   buildEyes();
   seg($('lights'), LIGHTS, state.light, (l) => l.name[state.lang], (id) => { state.light = id; syncUI(); draw(); });
   seg($('views'), [{ id: 'compare', icon: ICONS.compare }, { id: 'grid', icon: ICONS.grid }], state.view, (v) => t[v.id], (id) => { state.view = id; syncUI(); layout(); });
@@ -265,7 +286,11 @@ function syncUI() {
     $('spLine').textContent = sp.line[state.lang];
     $('spCaveat').textContent = sp.caveat ? sp.caveat[state.lang] : '';
     $('facts').innerHTML = sp.facts[state.lang].map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
-    for (const n of [about.querySelector('.about-head'), $('facts')]) { n.classList.remove('swap'); void n.offsetWidth; n.classList.add('swap'); }
+    const idx = SPECIES.indexOf(sp);
+    $('spIdx').innerHTML = `<b>${String(idx + 1).padStart(2, '0')}</b> / ${String(SPECIES.length).padStart(2, '0')}`;
+    $('spKind').textContent = state.lang === 'zh' ? '这双眼睛' : 'This eye';
+    $('meters').innerHTML = meters(sp);
+    for (const n of [about.querySelector('.about-top'), about.querySelector('.about-head'), $('meters'), $('facts')]) { n.classList.remove('swap'); void n.offsetWidth; n.classList.add('swap'); }
   }
   const opts = $('opts'); opts.innerHTML = '';
   const tog = (label, on, fn) => {
@@ -327,6 +352,13 @@ stage.addEventListener('pointerdown', (e) => {
   }
   stage.setPointerCapture(e.pointerId);
   e.preventDefault();
+});
+let glowRaf = 0;
+stage.addEventListener('pointermove', (e) => {
+  if (e.pointerType !== 'mouse') return;
+  const cx = e.clientX, cy = e.clientY;
+  cancelAnimationFrame(glowRaf);
+  glowRaf = requestAnimationFrame(() => { const r = stage.getBoundingClientRect(); stage.style.setProperty('--mx', (cx - r.left) + 'px'); stage.style.setProperty('--my', (cy - r.top) + 'px'); });
 });
 stage.addEventListener('pointermove', (e) => {
   const p = local(e);
@@ -402,7 +434,7 @@ $('save').onclick = () => {
 let rz = 0;
 addEventListener('resize', () => { cancelAnimationFrame(rz); rz = requestAnimationFrame(layout); });
 const io = new IntersectionObserver((es) => es.forEach((x) => x.isIntersecting && x.target.classList.add('in')), { threshold: 0.12 });
-document.querySelectorAll('.about, .gallery, .science').forEach((n) => { n.classList.add('rv'); io.observe(n); });
+document.querySelectorAll('.science').forEach((n) => { n.classList.add('rv'); io.observe(n); });
 
 syncUI();
 useSample(state.img, { keepEye: true }).then(() => {
