@@ -132,7 +132,7 @@ body[data-light="night"] .logo .lg-pupil { transform: scaleX(3.2) scaleY(.92); }
 .theme svg { width: 16px; height: 16px; overflow: visible; fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; }
 .theme svg > * { transform-origin: 10px 10px; transition: opacity var(--t1) var(--ease), transform var(--t2) var(--ease); opacity: 0; transform: rotate(-60deg) scale(.6); }
 .theme .fill { fill: currentColor; stroke: none; }
-html[data-theme-pref="auto"] .th-auto, html[data-theme-pref="light"] .th-sun, html[data-theme-pref="dark"] .th-moon { opacity: 1; transform: none; }
+html:not([data-theme="light"]) .th-moon, html[data-theme="light"] .th-sun { opacity: 1; transform: none; }
 .theme span { font-family: var(--mono); font-size: 10px; letter-spacing: var(--mono-ls); text-transform: uppercase; }
 
 /* ---------- intro ---------- */
@@ -716,7 +716,7 @@ body::after {
 @media (hover: none) { .glow { display: none; } }
 
 /* =====================================================================
-   LIGHT THEME — warm paper. Dark stays the default observatory.
+   LIGHT THEME — warm paper. Dark is the default; light only by choice.
    The stage keeps a dark frame so photographs still read as prints.
    ===================================================================== */
 html { color-scheme: dark; }

@@ -165,30 +165,25 @@ async function useFile(file) {
   } finally { if (tok === loadToken) $('loading').classList.remove('on'); }
 }
 
-/* ---------------- theme: auto / light / dark ---------------- */
+/* ---------------- theme: dark (default) / light ---------------- */
 const root = document.documentElement;
-const sysLight = matchMedia('(prefers-color-scheme: light)');
 const isLight = () => root.dataset.theme === 'light';
 /* on paper the pale accents (human ivory, eagle straw) need more ink to stay legible */
 const accent = (sp) => isLight() ? `color-mix(in oklab, ${sp.accent} 58%, #2b2116)` : sp.accent;
-const THEME_L = { zh: { auto: '自动', light: '浅色', dark: '深色' }, en: { auto: 'Auto', light: 'Light', dark: 'Dark' } };
-function applyTheme(pref, { save = true, animate = true } = {}) {
-  const t = pref === 'auto' ? (sysLight.matches ? 'light' : 'dark') : pref;
-  if (animate && root.dataset.theme !== t) {
-    root.classList.add('theme-anim');
-    clearTimeout(applyTheme.tm); applyTheme.tm = setTimeout(() => root.classList.remove('theme-anim'), 750);
-  }
-  root.dataset.theme = t; root.dataset.themePref = pref;
-  if (save) localStorage.setItem('av-theme', pref);
-  syncTheme();
+const THEME_L = { zh: { light: '浅色', dark: '深色' }, en: { light: 'Light', dark: 'Dark' } };
+function applyTheme(t) {
+  root.classList.add('theme-anim');
+  clearTimeout(applyTheme.tm); applyTheme.tm = setTimeout(() => root.classList.remove('theme-anim'), 750);
+  root.dataset.theme = t;
+  try { localStorage.setItem('av-theme', t); } catch (e) {}
+  syncTheme(); syncUI();
 }
 function syncTheme() {
-  const p = root.dataset.themePref || 'auto', L = THEME_L[state.lang];
-  $('themeL').textContent = L[p];
-  $('theme').title = `${L[p]} → ${L[{ auto: 'light', light: 'dark', dark: 'auto' }[p]]}`;
-  if (typeof syncUI === 'function' && $('tagline').textContent) syncUI();
+  const t = isLight() ? 'light' : 'dark', L = THEME_L[state.lang], next = t === 'light' ? 'dark' : 'light';
+  $('themeL').textContent = L[t];
+  $('theme').title = $('theme').ariaLabel = (state.lang === 'zh' ? '切换到' : 'Switch to ') + L[next].toLowerCase();
+  $('theme').setAttribute('aria-pressed', String(t === 'light'));
 }
-sysLight.addEventListener('change', () => { if (root.dataset.themePref === 'auto') applyTheme('auto', { save: false }); });
 
 /* ---------------- UI ---------------- */
 let prevView = null, prevLight = null, prevEye = null;
@@ -408,7 +403,7 @@ function syncUI() {
   p.set('eye', state.eye); p.set('light', state.light);
   if (state.view === 'grid') p.set('view', 'grid');
   if (qs.get('lang')) p.set('lang', state.lang);
-  if (qs.get('theme')) p.set('theme', qs.get('theme'));
+  if (isLight()) p.set('theme', 'light');
   history.replaceState(null, '', '?' + p.toString());
 }
 
@@ -477,7 +472,7 @@ addEventListener('keydown', (e) => {
 });
 
 $('lang').onclick = () => { state.lang = state.lang === 'zh' ? 'en' : 'zh'; syncUI(); syncTheme(); placeGridTags(); };
-$('theme').onclick = () => applyTheme({ auto: 'light', light: 'dark', dark: 'auto' }[root.dataset.themePref || 'auto']);
+$('theme').onclick = () => applyTheme(isLight() ? 'dark' : 'light');
 syncTheme();
 $('file').onchange = (e) => useFile(e.target.files[0]);
 addEventListener('paste', (e) => { const f = [...(e.clipboardData?.files || [])].find((f) => /^image\//.test(f.type)); if (f) useFile(f); });
