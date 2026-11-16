@@ -165,6 +165,31 @@ async function useFile(file) {
   } finally { if (tok === loadToken) $('loading').classList.remove('on'); }
 }
 
+/* ---------------- theme: auto / light / dark ---------------- */
+const root = document.documentElement;
+const sysLight = matchMedia('(prefers-color-scheme: light)');
+const isLight = () => root.dataset.theme === 'light';
+/* on paper the pale accents (human ivory, eagle straw) need more ink to stay legible */
+const accent = (sp) => isLight() ? `color-mix(in oklab, ${sp.accent} 58%, #2b2116)` : sp.accent;
+const THEME_L = { zh: { auto: '自动', light: '浅色', dark: '深色' }, en: { auto: 'Auto', light: 'Light', dark: 'Dark' } };
+function applyTheme(pref, { save = true, animate = true } = {}) {
+  const t = pref === 'auto' ? (sysLight.matches ? 'light' : 'dark') : pref;
+  if (animate && root.dataset.theme !== t) {
+    root.classList.add('theme-anim');
+    clearTimeout(applyTheme.tm); applyTheme.tm = setTimeout(() => root.classList.remove('theme-anim'), 750);
+  }
+  root.dataset.theme = t; root.dataset.themePref = pref;
+  if (save) localStorage.setItem('av-theme', pref);
+  syncTheme();
+}
+function syncTheme() {
+  const p = root.dataset.themePref || 'auto', L = THEME_L[state.lang];
+  $('themeL').textContent = L[p];
+  $('theme').title = `${L[p]} → ${L[{ auto: 'light', light: 'dark', dark: 'auto' }[p]]}`;
+  if (typeof syncUI === 'function' && $('tagline').textContent) syncUI();
+}
+sysLight.addEventListener('change', () => { if (root.dataset.themePref === 'auto') applyTheme('auto', { save: false }); });
+
 /* ---------------- UI ---------------- */
 let prevView = null, prevLight = null, prevEye = null;
 const XT = {
@@ -199,7 +224,7 @@ function atlas() {
   const x = (nm) => ((nm - 300) / 400 * 100).toFixed(2) + '%';
   const lg = (m) => Math.max(0.03, Math.log(60 / m) / Math.log(60 / 0.35));
   const head = `<div class="arow ahead"><span>${X.cols[0]}</span><span>${X.cols[1]}</span><span>${X.cols[2]}</span><span>${X.cols[3]}</span></div>`;
-  return head + SPECIES.map((sp, i) => `<button type="button" role="listitem" class="arow${sp.id === state.eye ? ' on' : ''}" data-id="${sp.id}" style="--c:${sp.accent}">
+  return head + SPECIES.map((sp, i) => `<button type="button" role="listitem" class="arow${sp.id === state.eye ? ' on' : ''}" data-id="${sp.id}" style="--c:${accent(sp)}">
     <span class="an"><em>${String(i + 1).padStart(2, '0')}</em><b>${sp.name[state.lang]}</b><i>${sp.latin}</i></span>
     <span class="aspec">${(sp.cones || []).map((nm) => `<i style="--x:${x(nm)}"><small>${nm}</small></i>`).join('')}</span>
     <span class="aacu"><b style="--v:${(lg(sp.mar) * 100).toFixed(1)}%"></b><small>${sp.mar}′</small></span>
@@ -245,7 +270,7 @@ function buildEyes() {
   SPECIES.forEach((sp) => {
     const b = document.createElement('button');
     b.type = 'button'; b.role = 'tab'; b.className = 'eye' + (sp.id === 'human' ? ' human' : '');
-    b.style.setProperty('--c', sp.accent);
+    b.style.setProperty('--c', accent(sp));
     b.innerHTML = `<b>${sp.name[state.lang]}</b><i>${sp.name.en === sp.name[state.lang] ? '' : sp.name.en}</i>`;
     b.setAttribute('aria-selected', sp.id === state.eye);
     b.title = `${sp.name[state.lang]} · ${sp.name.en === sp.name[state.lang] ? sp.latin : sp.name.en}`;
@@ -262,7 +287,7 @@ function buildThumbs() {
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'thumb' + (s.id === state.img ? ' on' : '');
     const rec = byId(SPECIES, s.eye);
-    b.style.setProperty('--c', rec.accent);
+    b.style.setProperty('--c', accent(rec));
     b.innerHTML = `<span class="ph"><img src="assets/photos/${s.id}-thumb.jpg" alt="" loading="lazy"></span><span class="cap"><b>${s.title[state.lang]}</b><small>${XT[state.lang].try} · ${rec.name[state.lang]}</small></span>`;
     b.onclick = () => { useSample(s.id); stage.scrollIntoView({ behavior: 'smooth', block: 'center' }); };
     el.insertBefore(b, up);
@@ -298,7 +323,7 @@ function placeGridTags() {
 function syncUI() {
   const t = T(), sp = eyeSp();
   document.documentElement.lang = state.lang === 'zh' ? 'zh-CN' : 'en';
-  document.documentElement.style.setProperty('--acc', sp.accent);
+  document.documentElement.style.setProperty('--acc', accent(sp));
   $('lang').textContent = state.lang === 'zh' ? 'EN' : '中';
   $('tagline').textContent = t.tagline;
   $('eyebrow').innerHTML = `<b>Comparative Vision</b><span>${state.lang === 'zh' ? '六种视觉系统的比较' : 'Six visual systems, side by side'}</span>`;
@@ -383,6 +408,7 @@ function syncUI() {
   p.set('eye', state.eye); p.set('light', state.light);
   if (state.view === 'grid') p.set('view', 'grid');
   if (qs.get('lang')) p.set('lang', state.lang);
+  if (qs.get('theme')) p.set('theme', qs.get('theme'));
   history.replaceState(null, '', '?' + p.toString());
 }
 
@@ -450,7 +476,9 @@ addEventListener('keydown', (e) => {
   if (e.key === 'g') { state.view = state.view === 'grid' ? 'compare' : 'grid'; syncUI(); layout(); }
 });
 
-$('lang').onclick = () => { state.lang = state.lang === 'zh' ? 'en' : 'zh'; syncUI(); placeGridTags(); };
+$('lang').onclick = () => { state.lang = state.lang === 'zh' ? 'en' : 'zh'; syncUI(); syncTheme(); placeGridTags(); };
+$('theme').onclick = () => applyTheme({ auto: 'light', light: 'dark', dark: 'auto' }[root.dataset.themePref || 'auto']);
+syncTheme();
 $('file').onchange = (e) => useFile(e.target.files[0]);
 addEventListener('paste', (e) => { const f = [...(e.clipboardData?.files || [])].find((f) => /^image\//.test(f.type)); if (f) useFile(f); });
 let dragDepth = 0;

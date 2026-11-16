@@ -46,7 +46,7 @@ w = +(w || 1440); h = +(h || 900);
 const browser = await chromium.launch(launchOptions());
 for (const [job, out] of list) {
   const [q, mode = 'full'] = job.split('@');
-  const page = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: +(process.env.DSF || 1), isMobile: w < 600, hasTouch: w < 600 });
+  const page = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: +(process.env.DSF || 1), isMobile: w < 600, hasTouch: w < 600, colorScheme: process.env.SCHEME || 'dark' });
   page.setDefaultTimeout(180000);
   page.on('pageerror', e => console.log('pageerror:', e.message));
   fs.mkdirSync(path.dirname(path.resolve(out)), { recursive: true });

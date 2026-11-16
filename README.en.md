@@ -6,6 +6,11 @@
 
 ![Cover](assets/cover.jpg)
 
+
+Light theme: the header button cycles Auto / Light / Dark and remembers your choice; `?theme=light` or `?theme=dark` overrides it.
+
+![Light theme](assets/cover-light.jpg)
+
 ## What it does
 
 - **Drag to compare**: human on the left, animal on the right, the line wherever you like.
