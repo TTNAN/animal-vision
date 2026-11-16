@@ -36,7 +36,7 @@ function layout() {
   const [cols, rows] = gridShape();
   const aspect = state.view === 'grid' ? (cols * state.imgW) / (rows * state.imgH) : state.imgW / state.imgH;
   const top = stage.getBoundingClientRect().top + scrollY;
-  const maxH = Math.max(260, isMobile() ? innerHeight * 0.62 : Math.min(innerHeight * 0.8, innerHeight - Math.min(top, 260) - 86));
+  const maxH = Math.max(260, isMobile() ? innerHeight * 0.62 : Math.min(innerHeight * 0.8, innerHeight - Math.min(top, 300) - 86));
   const w = Math.floor(Math.min(avail, maxH * aspect));
   const h = Math.floor(w / aspect);
   css = { w, h };
@@ -123,6 +123,7 @@ async function useSample(id, { keepEye = false } = {}) {
     const full = await loadImg(`assets/photos/${id}.jpg`);
     if (tok !== loadToken) return;
     R?.setImage(fit(full)); draw();
+    if (document.body.classList.contains('loaded')) { stage.classList.remove('swapimg'); void stage.offsetWidth; stage.classList.add('swapimg'); }
     window.__ready = (window.__ready || 0) + 1;
     document.body.classList.add('loaded');
   } finally { if (tok === loadToken) $('loading').classList.remove('on'); }
@@ -159,26 +160,33 @@ async function useFile(file) {
     tile.dataset.url = URL.createObjectURL(file);
     tile.style.background = `linear-gradient(rgba(0,0,0,.15), rgba(0,0,0,.75)), center / cover url("${tile.dataset.url}")`;
     syncUI(); layout();
+    stage.classList.remove('swapimg'); void stage.offsetWidth; stage.classList.add('swapimg');
     stage.scrollIntoView({ behavior: 'smooth', block: 'center' });
   } finally { if (tok === loadToken) $('loading').classList.remove('on'); }
 }
 
 /* ---------------- UI ---------------- */
-let prevView = null, prevLight = null;
+let prevView = null, prevLight = null, prevEye = null;
 const XT = {
   zh: {
     stats: [['6', '双眼睛'], ['300–700', '纳米光谱'], ['0.35′–60′', '分辨角']],
     atlasK: 'Atlas · 图谱', atlasH: '六双眼睛，并排看', atlasP: '同一把尺子量六种视觉：左边是每种视锥最敏感的波长，中间是能分辨的最小角度，右边是暗处的增益。点任意一行切换。',
     cols: ['眼睛', '视锥峰值 300–700 nm', '清晰度', '弱光'],
     sciK: 'Method · 方法', sciP: '每个画面都来自公开的视觉研究数据，在你的浏览器里用 WebGL2 实时计算。它们是有根据的近似，而不是动物的主观感受。',
-    try: '推荐', colour: '色觉', gain: '弱光',
+    try: '推荐', colour: '色觉', gain: '弱光', paste: '粘贴',
+    lights: { day: '白天', dusk: '黄昏', night: '夜里' }, yours: '你的照片', all: '六双眼睛同时',
+    cap: (e, l, p) => `正在以<b>${e}</b>的眼睛，看${l}的<em>${p}</em>`,
+    capAll: (l, p) => `<b>六双眼睛</b>同时，看${l}的<em>${p}</em>`,
   },
   en: {
     stats: [['6', 'eyes'], ['300–700', 'nm of spectrum'], ['0.35′–60′', 'resolving angle']],
     atlasK: 'Atlas', atlasH: 'Six eyes, side by side', atlasP: 'One ruler for six visual systems: where each cone peaks, the finest angle each eye resolves, and how much it gains in the dark. Tap a row to switch.',
     cols: ['Eye', 'Cone peaks 300–700 nm', 'Acuity', 'Low light'],
     sciK: 'Method', sciP: 'Every frame is computed live in your browser with WebGL2 from published vision research. These are grounded approximations, not what an animal actually experiences.',
-    try: 'Try', colour: 'Colour', gain: 'Low light',
+    try: 'Try', colour: 'Colour', gain: 'Low light', paste: 'Paste',
+    lights: { day: 'by day', dusk: 'at dusk', night: 'at night' }, yours: 'your photo',
+    cap: (e, l, p) => `Seeing <em>${p}</em> ${l} through the eyes of a <b>${e}</b>`,
+    capAll: (l, p) => `<b>Six eyes</b> at once, on <em>${p}</em> ${l}`,
   },
 };
 const short = (s) => s.split(/[：:;；，,（(]/)[0].replace(/^约\s*|^About\s*|^≈/, '').trim();
@@ -240,6 +248,7 @@ function buildEyes() {
     b.style.setProperty('--c', sp.accent);
     b.innerHTML = `<b>${sp.name[state.lang]}</b><i>${sp.name.en === sp.name[state.lang] ? '' : sp.name.en}</i>`;
     b.setAttribute('aria-selected', sp.id === state.eye);
+    b.title = `${sp.name[state.lang]} · ${sp.name.en === sp.name[state.lang] ? sp.latin : sp.name.en}`;
     b.onclick = () => setEye(sp.id);
     el.appendChild(b);
   });
@@ -298,6 +307,8 @@ function syncUI() {
   const tagR = $('tagR'), tagHTML = `${sp.name[state.lang]} <i>${sp.latin}</i>`;
   if (tagR.innerHTML !== tagHTML) { tagR.innerHTML = tagHTML; tagR.classList.remove('swap'); void tagR.offsetWidth; tagR.classList.add('swap'); }
   document.body.dataset.eye = sp.id; document.body.dataset.light = state.light;
+  if (prevEye !== null && prevEye !== sp.id) { stage.classList.remove('shift'); void stage.offsetWidth; stage.classList.add('shift'); }
+  prevEye = sp.id;
   if (prevView !== null && (prevView !== state.view || prevLight !== state.light)) { stage.classList.remove('flash'); void stage.offsetWidth; stage.classList.add('flash'); }
   prevView = state.view; prevLight = state.light;
   $('saveText').textContent = t.download;
@@ -321,7 +332,9 @@ function syncUI() {
     $('spCaveat').textContent = sp.caveat ? sp.caveat[state.lang] : '';
     $('facts').innerHTML = sp.facts[state.lang].map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
     const idx = SPECIES.indexOf(sp);
-    about.querySelector('.about-head').dataset.n = String(idx + 1).padStart(2, '0');
+    const ah = about.querySelector('.about-head');
+    ah.dataset.n = String(idx + 1).padStart(2, '0');
+    ah.style.setProperty('--folio-len', sp.name[state.lang].length > 5 ? .4 : 1);
     $('spIdx').innerHTML = `<b>${String(idx + 1).padStart(2, '0')}</b> / ${String(SPECIES.length).padStart(2, '0')}`;
     $('spKind').textContent = state.lang === 'zh' ? '这双眼睛' : 'This eye';
     $('meters').innerHTML = meters(sp);
@@ -353,6 +366,11 @@ function syncUI() {
     if (b.dataset.id === 'human') { state.view = 'grid'; syncUI(); layout(); } else setEye(b.dataset.id);
     stage.scrollIntoView({ behavior: 'smooth', block: 'center' });
   });
+  const place = state.upload ? X.yours : (state.lang === 'zh' ? byId(SAMPLES, state.img).title.zh : 'the ' + byId(SAMPLES, state.img).title.en.toLowerCase());
+  const capHTML = state.view === 'grid' ? X.capAll(X.lights[state.light], place) : X.cap(sp.name[state.lang].toLowerCase(), X.lights[state.light], place);
+  const cap = $('caption');
+  if (cap.innerHTML !== capHTML) { cap.innerHTML = capHTML; cap.classList.remove('swap'); void cap.offsetWidth; cap.classList.add('swap'); }
+  document.getElementById('uploadTile').dataset.paste = X.paste;
   $('sciK').textContent = X.sciK; $('sciP').textContent = X.sciP;
   $('sciH').textContent = t.scienceTitle;
   $('notes').innerHTML = t.notes.map(([k, v]) => `<div><b>${k}</b><p>${v}</p></div>`).join('');
