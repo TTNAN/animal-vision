@@ -8,7 +8,7 @@
 
 拖动中间的线，看看狗、猫、蜜蜂、鹰和小鼠眼里的世界，和你看到的有什么不同。
 
-**[在线体验 →](https://ttnan.github.io/animal-vision/)** · [English](README.en.md)
+**[在线体验 →](https://eyes.loc.cc)** · [English](README.en.md)
 
 </div>
 
