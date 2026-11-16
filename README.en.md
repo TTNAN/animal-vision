@@ -8,7 +8,7 @@
 
 Drag the line to see how a dog, a cat, a honeybee, an eagle and a mouse see the same scene you do.
 
-**[Try it live →](https://ttnan.github.io/animal-vision/)** · [中文](README.md)
+**[Try it live →](https://eyes.loc.cc)** · [中文](README.md)
 
 </div>
 
