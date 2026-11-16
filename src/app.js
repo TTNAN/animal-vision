@@ -32,7 +32,7 @@ const gridShape = () => (isMobile() ? [2, 3] : [3, 2]);
 let css = { w: 0, h: 0 };
 function layout() {
   const wrap = stage.parentElement;
-  const avail = wrap.clientWidth - parseFloat(getComputedStyle(wrap).paddingLeft) * 2;
+  const avail = wrap.clientWidth;
   const [cols, rows] = gridShape();
   const aspect = state.view === 'grid' ? (cols * state.imgW) / (rows * state.imgH) : state.imgW / state.imgH;
   const top = stage.getBoundingClientRect().top + scrollY;
