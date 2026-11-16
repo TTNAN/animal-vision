@@ -165,6 +165,38 @@ async function useFile(file) {
 
 /* ---------------- UI ---------------- */
 let prevView = null, prevLight = null;
+const XT = {
+  zh: {
+    stats: [['6', '双眼睛'], ['300–700', '纳米光谱'], ['0.35′–60′', '分辨角']],
+    atlasK: 'Atlas · 图谱', atlasH: '六双眼睛，并排看', atlasP: '同一把尺子量六种视觉：左边是每种视锥最敏感的波长，中间是能分辨的最小角度，右边是暗处的增益。点任意一行切换。',
+    cols: ['眼睛', '视锥峰值 300–700 nm', '清晰度', '弱光'],
+    sciK: 'Method · 方法', sciP: '每个画面都来自公开的视觉研究数据，在你的浏览器里用 WebGL2 实时计算。它们是有根据的近似，而不是动物的主观感受。',
+    try: '推荐', colour: '色觉', gain: '弱光',
+  },
+  en: {
+    stats: [['6', 'eyes'], ['300–700', 'nm of spectrum'], ['0.35′–60′', 'resolving angle']],
+    atlasK: 'Atlas', atlasH: 'Six eyes, side by side', atlasP: 'One ruler for six visual systems: where each cone peaks, the finest angle each eye resolves, and how much it gains in the dark. Tap a row to switch.',
+    cols: ['Eye', 'Cone peaks 300–700 nm', 'Acuity', 'Low light'],
+    sciK: 'Method', sciP: 'Every frame is computed live in your browser with WebGL2 from published vision research. These are grounded approximations, not what an animal actually experiences.',
+    try: 'Try', colour: 'Colour', gain: 'Low light',
+  },
+};
+const short = (s) => s.split(/[：:;；，,（(]/)[0].replace(/^约\s*|^About\s*|^≈/, '').trim();
+function readout(sp) {
+  const f = sp.facts[state.lang];
+  return `<span>${short(f[0][1])}</span><span>${short(f[1][1])}</span><span>${XT[state.lang].gain} ×${sp.gain}</span>`;
+}
+function atlas() {
+  const X = XT[state.lang];
+  const x = (nm) => ((nm - 300) / 400 * 100).toFixed(2) + '%';
+  const lg = (m) => Math.max(0.03, Math.log(60 / m) / Math.log(60 / 0.35));
+  const head = `<div class="arow ahead"><span>${X.cols[0]}</span><span>${X.cols[1]}</span><span>${X.cols[2]}</span><span>${X.cols[3]}</span></div>`;
+  return head + SPECIES.map((sp, i) => `<button type="button" role="listitem" class="arow${sp.id === state.eye ? ' on' : ''}" data-id="${sp.id}" style="--c:${sp.accent}">
+    <span class="an"><em>${String(i + 1).padStart(2, '0')}</em><b>${sp.name[state.lang]}</b><i>${sp.latin}</i></span>
+    <span class="aspec">${(sp.cones || []).map((nm) => `<i style="--x:${x(nm)}"><small>${nm}</small></i>`).join('')}</span>
+    <span class="aacu"><b style="--v:${(lg(sp.mar) * 100).toFixed(1)}%"></b><small>${sp.mar}′</small></span>
+    <span class="again">×${sp.gain}</span></button>`).join('');
+}
 const ML = { zh: ['光谱峰值', '清晰度', '弱光增益', '人'], en: ['Cone peaks', 'Acuity', 'Low-light gain', 'human'] };
 function meters(sp) {
   const L = ML[state.lang];
@@ -220,7 +252,9 @@ function buildThumbs() {
   for (const s of SAMPLES) {
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'thumb' + (s.id === state.img ? ' on' : '');
-    b.innerHTML = `<img src="assets/photos/${s.id}-thumb.jpg" alt="" loading="lazy"><span>${s.title[state.lang]}</span>`;
+    const rec = byId(SPECIES, s.eye);
+    b.style.setProperty('--c', rec.accent);
+    b.innerHTML = `<span class="ph"><img src="assets/photos/${s.id}-thumb.jpg" alt="" loading="lazy"></span><span class="cap"><b>${s.title[state.lang]}</b><small>${XT[state.lang].try} · ${rec.name[state.lang]}</small></span>`;
     b.onclick = () => { useSample(s.id); stage.scrollIntoView({ behavior: 'smooth', block: 'center' }); };
     el.insertBefore(b, up);
   }
@@ -287,6 +321,7 @@ function syncUI() {
     $('spCaveat').textContent = sp.caveat ? sp.caveat[state.lang] : '';
     $('facts').innerHTML = sp.facts[state.lang].map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
     const idx = SPECIES.indexOf(sp);
+    about.querySelector('.about-head').dataset.n = String(idx + 1).padStart(2, '0');
     $('spIdx').innerHTML = `<b>${String(idx + 1).padStart(2, '0')}</b> / ${String(SPECIES.length).padStart(2, '0')}`;
     $('spKind').textContent = state.lang === 'zh' ? '这双眼睛' : 'This eye';
     $('meters').innerHTML = meters(sp);
@@ -308,6 +343,17 @@ function syncUI() {
   $('uploadT').textContent = t.upload;
   $('uploadS').textContent = t.uploadSub;
   buildThumbs();
+  const X = XT[state.lang];
+  $('stats').innerHTML = X.stats.map(([v, k]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
+  const ro = $('readout'), roHTML = readout(sp);
+  if (ro.dataset.key !== key) { ro.dataset.key = key; ro.innerHTML = roHTML; ro.classList.remove('swap'); void ro.offsetWidth; ro.classList.add('swap'); }
+  $('atlasK').textContent = X.atlasK; $('atlasH').textContent = X.atlasH; $('atlasP').textContent = X.atlasP;
+  $('atlas').innerHTML = atlas();
+  $('atlas').querySelectorAll('.arow[data-id]').forEach((b) => b.onclick = () => {
+    if (b.dataset.id === 'human') { state.view = 'grid'; syncUI(); layout(); } else setEye(b.dataset.id);
+    stage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+  $('sciK').textContent = X.sciK; $('sciP').textContent = X.sciP;
   $('sciH').textContent = t.scienceTitle;
   $('notes').innerHTML = t.notes.map(([k, v]) => `<div><b>${k}</b><p>${v}</p></div>`).join('');
   $('credits').innerHTML = `${t.credits} (CC0, Wikimedia Commons): ` + SAMPLES.map((x) => `<a href="${x.page}" target="_blank" rel="noopener">${x.title[state.lang]} · ${x.credit}</a>`).join(', ') + '.';
@@ -403,7 +449,7 @@ $('save').onclick = () => {
   const c = R.snapshot(outW, outH, (fb) => render(fb, outW, outH, 1, false));
   const ctx = c.getContext('2d');
   const k = outW / css.w;
-  const font = (px, serif) => `${serif ? 'italic ' : '500 '}${Math.round(px * k)}px ${serif ? '"Instrument Serif", Georgia, serif' : 'Inter, "PingFang SC", sans-serif'}`;
+  const font = (px, serif) => `${serif ? 'italic ' : '500 '}${Math.round(px * k)}px ${serif ? 'Fraunces, "AV Serif SC", Georgia, serif' : 'Geist, "PingFang SC", sans-serif'}`;
   const pill = (text, x, y, alignRight) => {
     ctx.font = font(12);
     const w = ctx.measureText(text).width + 22 * k, h = 26 * k;
@@ -434,7 +480,7 @@ $('save').onclick = () => {
 let rz = 0;
 addEventListener('resize', () => { cancelAnimationFrame(rz); rz = requestAnimationFrame(layout); });
 const io = new IntersectionObserver((es) => es.forEach((x) => x.isIntersecting && x.target.classList.add('in')), { threshold: 0.12 });
-document.querySelectorAll('.science').forEach((n) => { n.classList.add('rv'); io.observe(n); });
+document.querySelectorAll('.atlas, .science').forEach((n) => { n.classList.add('rv'); io.observe(n); });
 
 syncUI();
 useSample(state.img, { keepEye: true }).then(() => {

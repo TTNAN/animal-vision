@@ -59,7 +59,7 @@ for (const [job, out] of list) {
     await page.mouse.move(box.x + box.width * fx, box.y + box.height * fy);
   }
   await page.evaluate(() => { document.querySelectorAll('.rv').forEach(n => n.classList.add('in')); return document.fonts.ready; });
-  await page.waitForTimeout(500);
+  await page.waitForTimeout(3500);
   const opt = out.endsWith('.jpg') ? { path: out, type: 'jpeg', quality: 88 } : { path: out };
   if (mode === 'stage') await page.locator('#stage').screenshot(opt);
   else await page.screenshot({ ...opt, fullPage: mode === 'long' });

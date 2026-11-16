@@ -63,7 +63,7 @@ All from Wikimedia Commons, CC0:
 [Night street](https://commons.wikimedia.org/wiki/File:Night_street_in_Udagawach%C5%8D,_Tokyo_(53335292514).jpg) Romain Guy ·
 [Cat](https://commons.wikimedia.org/wiki/File:Young_tabby_cat_keeping_watch.jpg) W.carter
 
-Fonts: Instrument Serif and Inter (SIL Open Font License).
+Fonts: Fraunces, Geist, Geist Mono and Noto Serif SC (SIL Open Font License).
 
 The earlier 3D room version lives on at tag [`v4-3d`](https://github.com/TTNAN/animal-vision/tree/v4-3d).
 

@@ -71,7 +71,7 @@ URL 参数：`?img=orchard|sunflower|valley|market|night|cat&eye=dog|cat|bee|eag
 [夜街](https://commons.wikimedia.org/wiki/File:Night_street_in_Udagawach%C5%8D,_Tokyo_(53335292514).jpg) Romain Guy ·
 [猫](https://commons.wikimedia.org/wiki/File:Young_tabby_cat_keeping_watch.jpg) W.carter
 
-字体：Instrument Serif、Inter（SIL Open Font License）。
+字体：Fraunces、Geist、Geist Mono、思源宋体 Noto Serif SC（SIL Open Font License）。
 
 之前的 3D 房间版本保留在标签 [`v4-3d`](https://github.com/TTNAN/animal-vision/tree/v4-3d)。
 
