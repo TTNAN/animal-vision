@@ -1,17 +1,15 @@
 {
   "name": "animal-vision",
-  "version": "2.0.0",
+  "version": "5.0.0",
   "private": true,
-  "description": "A toy-height 3D room seen through animal eyes",
-  "license": "MIT",
+  "description": "One world, six eyes: compare how humans, dogs, cats, bees, eagles and mice see the same photo.",
+  "type": "module",
   "scripts": {
-    "build": "esbuild src/main.js --bundle --minify --format=esm --target=es2022 --outfile=dist/app.js",
-    "dev": "esbuild src/main.js --bundle --format=esm --target=es2022 --outfile=dist/app.js --watch --servedir=.",
-    "capture": "node tools/capture.mjs"
+    "serve": "python3 -m http.server 8080",
+    "capture": "node tools/capture.mjs 1440 900"
   },
   "devDependencies": {
-    "esbuild": "^0.24.0",
-    "playwright-core": "^1.48.0",
-    "three": "0.170.0"
-  }
+    "playwright-core": "^1.48.0"
+  },
+  "license": "MIT"
 }

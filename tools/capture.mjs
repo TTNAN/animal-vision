@@ -1,6 +1,7 @@
-// Screenshot helper (also used to make the README images).
-//   npm run capture                         -> writes the default set into assets/
-//   node tools/capture.mjs 1280 760 "sp=bee&view=flower=out.png" ...
+// Screenshot helper for the README images.
+//   npm run capture                                   -> default set into assets/
+//   node tools/capture.mjs 1440 900 "img=orchard&eye=dog=out.jpg" "img=night&eye=cat@stage=stage.jpg"
+// A job is "<query>[@stage|@full]=<file>": @stage crops to the comparison, @full is the whole page.
 // Uses CHROME_PATH if set, then a Playwright headless shell if installed, then your local Chrome.
 import { chromium } from 'playwright-core';
 import fs from 'fs';
@@ -8,8 +9,7 @@ import os from 'os';
 import path from 'path';
 import http from 'http';
 
-// tiny static server: ES modules and model files can't load from file://
-const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.glb': 'model/gltf-binary', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.png': 'image/png', '.svg': 'image/svg+xml' };
+const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.jpg': 'image/jpeg', '.png': 'image/png', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' };
 const server = http.createServer((req, res) => {
   const f = path.join(process.cwd(), decodeURIComponent(req.url.split('?')[0]));
   fs.readFile(f, (e, d) => { if (e) { res.writeHead(404); res.end(); return; } res.writeHead(200, { 'Content-Type': TYPES[path.extname(f)] || 'application/octet-stream' }); res.end(d); });
@@ -30,30 +30,40 @@ function launchOptions() {
 }
 
 const DEFAULT = [
-  ['lang=zh&cube=1024&mode=split&sp=dog&view=rug&info=0', 'assets/cover.jpg'],
-  ['lang=zh&cube=1024&mode=grid&view=rug', 'assets/grid.jpg'],
-  ['lang=zh&cube=1024&mode=split&sp=dog&view=rug&info=0', 'assets/shots/dog.jpg'],
-  ['lang=zh&cube=1024&mode=split&sp=cat&view=door&night=1&info=0', 'assets/shots/cat-night.jpg'],
-  ['lang=zh&cube=1024&mode=split&sp=bee&view=flower&info=0', 'assets/shots/bee.jpg'],
-  ['lang=zh&cube=1024&mode=split&sp=eagle&view=shelf&info=0', 'assets/shots/eagle.jpg'],
-  ['lang=zh&cube=1024&mode=split&sp=snake&view=radiator&night=1&info=0', 'assets/shots/snake.jpg'],
-  ['lang=zh&cube=1024&mode=single&sp=cat&h=own&view=sofa&info=0', 'assets/shots/under-sofa.jpg'],
+  ['img=orchard&eye=dog&split=0.5&lang=zh@full', 'assets/cover.jpg'],
+  ['img=market&view=grid&split=0.5&lang=zh@stage', 'assets/shots/grid.jpg'],
+  ['img=orchard&eye=dog&split=0.5&lang=zh@stage', 'assets/shots/dog.jpg'],
+  ['img=sunflower&eye=bee&split=0.25&lang=zh@stage', 'assets/shots/bee.jpg'],
+  ['img=night&eye=cat&light=night&split=0.5&lang=zh@stage', 'assets/shots/cat-night.jpg'],
+  ['img=valley&eye=eagle&split=0.35&loupe=0.62,0.38&lang=zh@stage', 'assets/shots/eagle.jpg'],
+  ['img=cat&eye=mouse&split=0.5&lang=zh@stage', 'assets/shots/mouse.jpg'],
 ];
 
 let [w, h, ...jobs] = process.argv.slice(2);
-let list = jobs.length ? jobs.map(j => { const i = j.lastIndexOf('='); return [j.slice(0, i), j.slice(i + 1)]; }) : DEFAULT;
-w = +(w || 1280); h = +(h || 760);
+const list = jobs.length ? jobs.map(j => { const i = j.lastIndexOf('='); return [j.slice(0, i), j.slice(i + 1)]; }) : DEFAULT;
+w = +(w || 1440); h = +(h || 900);
 
 const browser = await chromium.launch(launchOptions());
-const page = await browser.newPage({ viewport: { width: w, height: h } });
-page.setDefaultTimeout(300000);
-page.on('pageerror', e => console.log('pageerror:', e.message));
-for (const [q, out] of list) {
+for (const [job, out] of list) {
+  const [q, mode = 'full'] = job.split('@');
+  const page = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: +(process.env.DSF || 1), isMobile: w < 600, hasTouch: w < 600 });
+  page.setDefaultTimeout(180000);
+  page.on('pageerror', e => console.log('pageerror:', e.message));
   fs.mkdirSync(path.dirname(path.resolve(out)), { recursive: true });
   await page.goto(`http://localhost:${PORT}/index.html?` + q);
-  await page.waitForFunction(() => (window.__frames || 0) > 2);
-  await page.waitForTimeout(600); // let the switch flash fade
-  await page.screenshot(out.endsWith('.jpg') ? { path: out, type: 'jpeg', quality: 86 } : { path: out });
+  await page.waitForFunction(() => (window.__ready || 0) >= 1);
+  const lp = new URLSearchParams(q).get('loupe');
+  if (lp) {
+    const [fx, fy] = lp.split(',').map(Number);
+    const box = await page.locator('#stage').boundingBox();
+    await page.mouse.move(box.x + box.width * fx, box.y + box.height * fy);
+  }
+  await page.evaluate(() => { document.querySelectorAll('.rv').forEach(n => n.classList.add('in')); return document.fonts.ready; });
+  await page.waitForTimeout(500);
+  const opt = out.endsWith('.jpg') ? { path: out, type: 'jpeg', quality: 88 } : { path: out };
+  if (mode === 'stage') await page.locator('#stage').screenshot(opt);
+  else await page.screenshot({ ...opt, fullPage: mode === 'long' });
+  await page.close();
   console.log('ok', out);
 }
 await browser.close();

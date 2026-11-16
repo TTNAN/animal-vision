@@ -1,121 +1,100 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>animal-vision · 趴在地上，换一双眼睛</title>
-<meta name="description" content="一间可以趴着爬来爬去的 3D 起居室，从地板 10 厘米的高度，用狗、猫、蜜蜂、鹰、蝮蛇的眼睛看同一个世界。">
-<meta property="og:title" content="animal-vision · 趴在地上，换一双眼睛">
-<meta property="og:description" content="A lived-in living room at floorboard height, seen through dog, cat, bee, eagle and pit-viper eyes.">
+<title>动物之眼 · Animal Vision</title>
+<meta name="description" content="同一个世界，六双眼睛。拖动中间的线，比较人、狗、猫、蜜蜂、鹰和小鼠眼里的同一张照片，也可以放进你自己的照片。">
+<meta property="og:title" content="动物之眼 · Animal Vision">
+<meta property="og:description" content="One world, six eyes. Compare how humans, dogs, cats, bees, eagles and mice see the same photo, or try your own.">
 <meta property="og:image" content="assets/cover.jpg">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👁</text></svg>">
+<meta name="theme-color" content="#0b0b0c">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%23ece8e1' stroke-width='2'/%3E%3Cpath d='M16 3a13 13 0 0 1 0 26z' fill='%23ece8e1'/%3E%3C/svg%3E">
+<link rel="preload" href="assets/fonts/InstrumentSerif-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<section class="hero">
-  <canvas id="stage" aria-label="3D room"></canvas>
-  <div id="labels"></div>
-  <div id="splitHandle" hidden><span>⟷</span></div>
+<div class="grain" aria-hidden="true"></div>
 
-  <header class="top">
-    <div class="brand">
-      <div class="logo">animal<span>·</span>vision</div>
-      <div class="sub" data-i18n="brandSub"></div>
-    </div>
-    <nav class="views" aria-label="viewpoints">
-      <button data-preset="door" data-i18n="v_door"></button>
-      <button data-preset="rug" data-i18n="v_rug"></button>
-      <button data-preset="sofa" data-i18n="v_sofa"></button>
-      <button data-preset="shelf" data-i18n="v_shelf"></button>
-      <button data-preset="flower" data-i18n="v_flower"></button>
-      <button data-preset="radiator" data-i18n="v_radiator"></button>
-    </nav>
-    <div class="tools">
-      <button id="shotBtn" class="ghost" data-i18n="shot"></button>
-      <button id="infoToggle" class="ghost" data-i18n="infoBtn"></button>
-      <button id="langBtn" class="ghost">EN</button>
-      <a class="ghost gh" href="https://github.com/TTNAN/animal-vision" aria-label="GitHub"><svg viewBox="0 0 16 16" width="16" height="16"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.06-.49.06-.49.8.06 1.23.83 1.23.83.72 1.23 1.88.87 2.34.67.07-.52.28-.87.5-1.07-1.78-.2-3.65-.89-3.65-3.95 0-.87.31-1.59.83-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
-    </div>
-  </header>
+<header class="top">
+  <a class="mark" href="./" aria-label="Animal Vision">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13"/><path d="M16 3a13 13 0 0 1 0 26z"/></svg>
+    <span class="mark-en">Animal Vision</span><span class="mark-zh">动物之眼</span>
+  </a>
+  <nav class="top-r">
+    <button class="lang" id="lang" type="button">EN</button>
+    <a class="gh" href="https://github.com/TTNAN/animal-vision" target="_blank" rel="noopener" aria-label="GitHub">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+    </a>
+  </nav>
+</header>
 
-  <div id="stageNote" hidden></div>
-  <div id="hint"><span class="mouse" data-i18n="hint"></span><span class="touchonly" data-i18n="hintTouch"></span></div>
+<main>
+  <section class="intro">
+    <h1 id="tagline">同一个世界，六双眼睛。</h1>
+    <p id="lede" class="lede"></p>
+  </section>
 
-  <aside id="info">
-    <div class="card">
-      <h2 id="infoName"></h2>
-      <div class="fov"><div id="fovSvg"></div><p data-i18n="fovCaption"></p></div>
-      <div id="infoRows"></div>
-      <div class="look"><b data-i18n="lookFor"></b><p id="infoLook"></p></div>
-    </div>
-    <div class="card">
-      <h3 data-i18n="questsTitle"></h3>
-      <div id="quests"></div>
-    </div>
-  </aside>
-
-  <div class="dpad" aria-hidden="true">
-    <button data-dpad="w" class="up">▲</button>
-    <button data-dpad="arrowleft" class="lt">◀</button>
-    <button data-dpad="s" class="dn">▼</button>
-    <button data-dpad="arrowright" class="rt">▶</button>
-  </div>
-
-  <footer class="dock">
-    <div id="chips" role="group" aria-label="species"></div>
-    <div class="controls">
-      <div class="seg" role="group">
-        <button data-compare="single" data-i18n="cmp_single"></button>
-        <button data-compare="split" data-i18n="cmp_split"></button>
-        <button data-compare="grid" data-i18n="cmp_grid"></button>
+  <section class="stage-wrap">
+    <div class="stage" id="stage">
+      <canvas id="view" aria-label="comparison"></canvas>
+      <div class="tag tag-l" id="tagL"></div>
+      <div class="tag tag-r" id="tagR"></div>
+      <div class="divider" id="divider" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-label="split">
+        <span class="knob"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l-5 6 5 6M15 6l5 6-5 6"/></svg></span>
       </div>
-      <div class="seg" role="group">
-        <button data-height="toy" data-i18n="h_toy"></button>
-        <button data-height="baby" data-i18n="h_baby"></button>
-        <button data-height="own" data-i18n="h_own"></button>
-      </div>
-      <button class="tg" data-toggle="night" aria-pressed="false">🌙 <span data-i18n="tg_night"></span></button>
-      <button class="tg" data-toggle="realFov" aria-pressed="false">↔️ <span data-i18n="tg_fov"></span></button>
+      <div class="loupe" id="loupe" aria-hidden="true"><span>×3</span></div>
+      <div class="gridtags" id="gridtags"></div>
+      <div class="drop" id="drop"><span id="dropText"></span></div>
+      <div class="loading" id="loading"><span></span></div>
+      <p class="nogl" id="nogl" hidden></p>
     </div>
-  </footer>
-  <noscript><p class="nojs">需要开启 JavaScript 和 WebGL 2。</p></noscript>
-</section>
 
-<main class="story">
-  <section>
-    <h2 data-i18n="s1Title"></h2>
-    <p data-i18n="s1Body"></p>
-  </section>
-  <section>
-    <h2 data-i18n="s2Title"></h2>
-    <div id="tests" class="tests"></div>
-  </section>
-  <section class="two">
-    <div>
-      <h2 data-i18n="s3Title"></h2>
-      <p data-i18n="s3Body"></p>
-    </div>
-    <div class="caveat">
-      <h2 data-i18n="s4Title"></h2>
-      <p data-i18n="s4Body"></p>
+    <div class="bar">
+      <div class="eyes" id="eyes" role="tablist"></div>
+      <div class="ctrl">
+        <div class="seg" id="lights" role="radiogroup"></div>
+        <div class="seg" id="views" role="radiogroup"></div>
+        <button class="btn ghost" id="save" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 19h14"/></svg><span id="saveText"></span>
+        </button>
+      </div>
     </div>
   </section>
-  <section>
-    <h2 data-i18n="srcTitle"></h2>
-    <ol class="refs">
-      <li>Neitz J, Geist T, Jacobs GH (1989). Color vision in the dog. <i>Visual Neuroscience</i> 3: 119–125.</li>
-      <li>Miller PE, Murphy CJ (1995). Vision in dogs. <i>JAVMA</i> 207(12): 1623–1634.</li>
-      <li>Guenther E, Zrenner E (1993). The spectral sensitivity of dark- and light-adapted cat retinal ganglion cells. <i>J Neurosci</i> 13(4): 1543–1550.</li>
-      <li>Peitsch D et al. (1992). The spectral input systems of hymenopteran insects and their receptor-based colour vision. <i>J Comp Physiol A</i> 170: 23–40.</li>
-      <li>Reymond L (1985). Spatial visual acuity of the eagle <i>Aquila audax</i>. <i>Vision Research</i> 25(10): 1477–1491.</li>
-      <li>Snyder AW, Miller WH (1978). Telephoto lens system of falconiform eyes. <i>Nature</i> 275: 127–129.</li>
-      <li>Newman EA, Hartline PH (1982). The infrared "vision" of snakes. <i>Scientific American</i> 246(3): 116–127.</li>
-      <li>Machado GM, Oliveira MM, Fernandes LAF (2009). A physiologically-based model for simulation of color vision deficiency. <i>IEEE TVCG</i> 15(6): 1291–1298.</li>
-    </ol>
+
+  <section class="about" id="about">
+    <div class="about-head">
+      <p class="latin" id="latin"></p>
+      <h2 id="spName"></h2>
+      <p class="line" id="spLine"></p>
+      <p class="caveat" id="spCaveat"></p>
+      <div class="opts" id="opts"></div>
+    </div>
+    <dl class="facts" id="facts"></dl>
   </section>
-  <footer class="foot"><span data-i18n="footer"></span> · <a href="https://github.com/TTNAN/animal-vision">GitHub</a></footer>
+
+  <section class="gallery">
+    <div class="sec-h"><h3 id="samplesH"></h3><p class="hint" id="hint"></p></div>
+    <div class="thumbs" id="thumbs">
+      <label class="upload" id="uploadTile">
+        <input type="file" id="file" accept="image/*" hidden>
+        <span class="plus"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span>
+        <b id="uploadT"></b><small id="uploadS"></small>
+      </label>
+    </div>
+  </section>
+
+  <section class="science">
+    <h3 id="sciH"></h3>
+    <div class="notes" id="notes"></div>
+  </section>
 </main>
 
-<script type="module" src="dist/app.js"></script>
+<footer class="foot">
+  <p id="credits"></p>
+  <p class="fine">MIT · <a href="https://github.com/TTNAN/animal-vision" target="_blank" rel="noopener">TTNAN/animal-vision</a></p>
+</footer>
+
+<script type="module" src="src/app.js"></script>
 </body>
 </html>
