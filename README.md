@@ -157,6 +157,14 @@ tools/capture.mjs   截图脚本
 
 之前的 3D 房间版本保留在标签 [`v4-3d`](https://github.com/TTNAN/animal-vision/tree/v4-3d)。
 
+## 请我喝杯咖啡
+
+如果这个项目帮你省了点时间，欢迎请我喝杯咖啡。☕
+
+| 微信赞赏码 |
+| -------- |
+| <img src="assets/wechat-pay.png" width="220" alt="微信赞赏码"> |
+
 ## 许可
 
 代码使用 [MIT License](LICENSE)。

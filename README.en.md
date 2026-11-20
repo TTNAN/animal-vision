@@ -157,6 +157,14 @@ Fonts: Fraunces, Geist, Geist Mono and Noto Serif SC, all under the SIL Open Fon
 
 The earlier 3D room version lives at the tag [`v4-3d`](https://github.com/TTNAN/animal-vision/tree/v4-3d).
 
+## Buy me a coffee
+
+If this project saved you some time, feel free to buy me a coffee. ☕
+
+| WeChat Reward |
+| ---------- |
+| <img src="assets/wechat-pay.png" width="220" alt="WeChat Reward QR"> |
+
 ## License
 
 Code is under the [MIT License](LICENSE).
